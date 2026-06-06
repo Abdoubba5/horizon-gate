@@ -3,7 +3,24 @@
   <head>
 	<meta charset="UTF-8"/>
 	<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+	<!-- Dynamic SEO — updated by JS after data loads -->
 	<title>تفاصيل الفرصة | بوابة الأفق</title>
+	<meta name="description" content="اكتشف أفضل الفرص الدولية — منح دراسية، تدريبات، ومسابقات عبر بوابة الأفق"/>
+	<meta name="robots" content="index, follow"/>
+	<!-- Open Graph -->
+	<meta property="og:type"        content="article"/>
+	<meta property="og:site_name"   content="بوابة الأفق | Horizon Gate"/>
+	<meta property="og:locale"      content="ar_DZ"/>
+	<meta property="og:title"       content="تفاصيل الفرصة | بوابة الأفق"/>
+	<meta property="og:description" content="اكتشف أفضل الفرص الدولية على بوابة الأفق"/>
+	<meta property="og:image"       content=""/>
+	<!-- Twitter -->
+	<meta name="twitter:card"        content="summary_large_image"/>
+	<meta name="twitter:title"       content="تفاصيل الفرصة | بوابة الأفق"/>
+	<meta name="twitter:description" content="اكتشف أفضل الفرص الدولية على بوابة الأفق"/>
+	<meta name="twitter:image"       content=""/>
+	<!-- Canonical -->
+	<link rel="canonical" href=""/>
 	<meta name="theme-color" content="#050508"/>
 	<link rel="preconnect" href="https://fonts.googleapis.com"/>
 	<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
@@ -332,6 +349,22 @@ async function renderDetail() {
           </div>
         </div>
       </div>
+
+      ${Array.isArray(item.tags) && item.tags.length ? `
+      <div class="detail-section">
+        <div class="detail-section-title">🏷️ الوسوم</div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;">
+          ${item.tags.map(t => `
+            <a href="opportunities.html?tag=${encodeURIComponent(t)}"
+               style="display:inline-flex;align-items:center;gap:4px;
+                      background:rgba(251,191,36,0.08);border:1px solid rgba(251,191,36,0.22);
+                      border-radius:999px;padding:5px 14px;font-size:0.78rem;
+                      color:#fbbf24;font-family:'Cairo',sans-serif;font-weight:600;
+                      text-decoration:none;transition:all 0.2s;pointer-events:auto;">
+              #${safe(t)}
+            </a>`).join('')}
+        </div>
+      </div>` : ''}
     </div>
 
     <!-- SIDEBAR -->
@@ -388,6 +421,62 @@ async function renderDetail() {
 
   // Store item globally for share functions
   window._item = item;
+
+  // Update SEO meta tags dynamically
+  updateSEO(item);
+}
+
+// ── Dynamic SEO Meta Tags ─────────────────────────────────────
+function updateSEO(item) {
+  if (!item) return;
+  const safe  = s => HorizonApp.sanitize(s||'');
+  const desc  = `${safe(item.type)} في ${safe(item.country)} — ${safe(item.funding)}. آخر موعد للتقديم: ${HorizonApp.formatDate(item.deadline)}. ${safe(item.desc).slice(0,120)}`;
+  const title = `${safe(item.title)} | بوابة الأفق`;
+  const img   = item.image || '';
+  const canon = `${location.origin}${location.pathname}?id=${item.id}`;
+
+  // Page title
+  document.title = title;
+
+  // Helper to set/create meta
+  const setMeta = (attr, val, content) => {
+    let el = document.querySelector(`meta[${attr}="${val}"]`);
+    if (!el) { el = document.createElement('meta'); el.setAttribute(attr, val); document.head.appendChild(el); }
+    el.setAttribute('content', content);
+  };
+
+  setMeta('name',     'description',        desc);
+  setMeta('name',     'keywords',           [item.type, item.country, item.funding, ...(item.tags||[])].join(', '));
+  setMeta('property', 'og:title',           title);
+  setMeta('property', 'og:description',     desc);
+  setMeta('property', 'og:url',             canon);
+  setMeta('property', 'og:image',           img);
+  setMeta('name',     'twitter:title',      title);
+  setMeta('name',     'twitter:description',desc);
+  setMeta('name',     'twitter:image',      img);
+
+  // Canonical
+  let canonEl = document.querySelector('link[rel="canonical"]');
+  if (!canonEl) { canonEl = document.createElement('link'); canonEl.rel='canonical'; document.head.appendChild(canonEl); }
+  canonEl.href = canon;
+
+  // JSON-LD Structured Data (Schema.org)
+  let ldEl = document.getElementById('ld-json');
+  if (!ldEl) { ldEl = document.createElement('script'); ldEl.id='ld-json'; ldEl.type='application/ld+json'; document.head.appendChild(ldEl); }
+  ldEl.textContent = JSON.stringify({
+    "@context": "https://schema.org",
+    "@type":    "Event",
+    "name":     item.title,
+    "description": item.desc,
+    "url":      item.url,
+    "location": { "@type": "Place", "name": item.country },
+    "endDate":  item.deadline,
+    "organizer":{ "@type": "Organization", "name": "بوابة الأفق" },
+    "offers":   { "@type": "Offer", "price": "0", "priceCurrency": "DZD",
+                  "availability": HorizonApp.isExpired(item.deadline)
+                    ? "https://schema.org/SoldOut"
+                    : "https://schema.org/InStock" }
+  });
 }
 
 // ── Actions ──────────────────────────────────────────────────

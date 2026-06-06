@@ -99,6 +99,57 @@
     }
     .btn-edit:hover{background:rgba(251,191,36,0.18);border-color:rgba(251,191,36,0.45);}
 
+    /* ── Tags Input ── */
+    .tags-input-wrapper {
+      background:rgba(255,255,255,0.03);border:1px solid var(--card-border);
+      border-radius:var(--radius-sm);padding:8px 12px;
+      display:flex;flex-wrap:wrap;gap:6px;align-items:center;
+      min-height:46px;cursor:text;transition:all 0.2s;
+    }
+    .tags-input-wrapper:focus-within {
+      border-color:rgba(251,191,36,0.4);
+      background:rgba(255,255,255,0.05);
+      box-shadow:0 0 0 3px rgba(251,191,36,0.06);
+    }
+    .tag-chip {
+      display:inline-flex;align-items:center;gap:5px;
+      background:rgba(251,191,36,0.1);border:1px solid rgba(251,191,36,0.3);
+      border-radius:999px;padding:3px 10px;font-size:0.74rem;
+      color:#fbbf24;font-family:'Cairo',sans-serif;font-weight:600;
+      animation:tagPop 0.2s cubic-bezier(0.34,1.56,0.64,1) both;
+    }
+    @keyframes tagPop{from{opacity:0;transform:scale(0.7)}to{opacity:1;transform:scale(1)}}
+    .tag-remove-btn {
+      background:none;border:none;color:rgba(251,191,36,0.6);
+      cursor:pointer;font-size:0.72rem;padding:0;line-height:1;
+      transition:color 0.15s;
+    }
+    .tag-remove-btn:hover{color:#ef4444;}
+    .tags-text-input {
+      background:none;border:none;outline:none;
+      color:var(--text-main);font-family:'Tajawal',sans-serif;font-size:0.88rem;
+      flex:1;min-width:120px;padding:2px 0;
+    }
+    .tags-text-input::placeholder{color:var(--text-subtle);}
+    .tag-suggest-row{display:flex;gap:6px;flex-wrap:wrap;margin-top:6px;}
+    .tag-suggest-btn {
+      background:rgba(255,255,255,0.03);border:1px solid var(--card-border);
+      border-radius:999px;padding:3px 11px;font-size:0.72rem;
+      color:var(--text-muted);cursor:pointer;transition:all 0.2s;
+      font-family:'Cairo',sans-serif;
+    }
+    .tag-suggest-btn:hover{
+      background:rgba(251,191,36,0.08);color:#fbbf24;
+      border-color:rgba(251,191,36,0.3);
+    }
+    /* Tag badge in record row */
+    .record-tag {
+      display:inline-flex;align-items:center;
+      background:rgba(251,191,36,0.08);border:1px solid rgba(251,191,36,0.2);
+      border-radius:999px;padding:1px 8px;font-size:0.68rem;
+      color:rgba(251,191,36,0.8);font-family:'Cairo',sans-serif;
+    }
+
     /* form-section title indicator */
     .form-section-indicator {
       display:inline-flex;align-items:center;gap:8px;
@@ -204,6 +255,23 @@
 		  <div class="form-group full-width">
 			<label class="form-label">الوصف التفصيلي *</label>
 			<textarea id="e_desc" class="form-textarea" style="min-height:110px;" placeholder="وصف تفصيلي..."></textarea>
+		  </div>
+		  <div class="form-group full-width">
+			<label class="form-label">الوسوم / Tags <span style="color:var(--text-subtle);font-weight:400;">(اختياري)</span></label>
+			<div class="tags-input-wrapper" onclick="document.getElementById('e_tags_input').focus()">
+			  <div id="e_tags_list" style="display:contents;"></div>
+			  <input type="text" id="e_tags_input" class="tags-text-input"
+				placeholder="أضف وسماً واضغط Enter..."
+				onkeydown="handleTagKey(event,'e')"
+				onblur="commitTagOnBlur('e')" />
+			</div>
+			<div class="tag-suggest-row">
+			  <button type="button" class="tag-suggest-btn" onclick="addTag('للجزائريين','e')">🇩🇿 للجزائريين</button>
+			  <button type="button" class="tag-suggest-btn" onclick="addTag('بدون شهادة','e')">📋 بدون شهادة</button>
+			  <button type="button" class="tag-suggest-btn" onclick="addTag('أونلاين','e')">🌐 أونلاين</button>
+			  <button type="button" class="tag-suggest-btn" onclick="addTag('18-35 سنة','e')">🎯 18-35 سنة</button>
+			  <button type="button" class="tag-suggest-btn" onclick="addTag('للطلاب','e')">👨‍🎓 للطلاب</button>
+			</div>
 		  </div>
 		</div>
 		<div style="margin-top:20px;display:flex;gap:10px;flex-wrap:wrap;">
@@ -329,6 +397,26 @@
 			<div class="form-group full-width">
 			  <label class="form-label">الوصف التفصيلي *</label>
 			  <textarea id="f_desc" class="form-textarea" placeholder="اكتب وصفاً شاملاً للفرصة، المتطلبات، المزايا..."></textarea>
+			</div>
+			<div class="form-group full-width">
+			  <label class="form-label">الوسوم / Tags <span style="color:var(--text-subtle);font-weight:400;">(اختياري — اضغط Enter بعد كل وسم)</span></label>
+			  <div class="tags-input-wrapper" onclick="document.getElementById('f_tags_input').focus()">
+				<div id="f_tags_list" style="display:contents;"></div>
+				<input type="text" id="f_tags_input" class="tags-text-input"
+				  placeholder="مثال: للجزائريين، أونلاين..."
+				  onkeydown="handleTagKey(event,'f')"
+				  onblur="commitTagOnBlur('f')" />
+			  </div>
+			  <div class="tag-suggest-row">
+				<button type="button" class="tag-suggest-btn" onclick="addTag('للجزائريين','f')">🇩🇿 للجزائريين</button>
+				<button type="button" class="tag-suggest-btn" onclick="addTag('بدون شهادة','f')">📋 بدون شهادة</button>
+				<button type="button" class="tag-suggest-btn" onclick="addTag('أونلاين','f')">🌐 أونلاين</button>
+				<button type="button" class="tag-suggest-btn" onclick="addTag('18-35 سنة','f')">🎯 18-35 سنة</button>
+				<button type="button" class="tag-suggest-btn" onclick="addTag('دكتوراه','f')">🎓 دكتوراه</button>
+				<button type="button" class="tag-suggest-btn" onclick="addTag('ماستر','f')">📚 ماستر</button>
+				<button type="button" class="tag-suggest-btn" onclick="addTag('بكالوريا','f')">🏫 بكالوريا</button>
+				<button type="button" class="tag-suggest-btn" onclick="addTag('للطلاب','f')">👨‍🎓 للطلاب</button>
+			  </div>
 			</div>
 		  </div>
 		  <div style="margin-top:18px;display:flex;gap:10px;flex-wrap:wrap;">
@@ -605,6 +693,10 @@ function renderRecords(items, query) {
         <div style="font-size:0.73rem;color:var(--text-subtle);margin-top:4px;">
           ${safe(item.desc).slice(0,100)}${item.desc&&item.desc.length>100?'...':''}
         </div>
+        ${Array.isArray(item.tags)&&item.tags.length ? `
+        <div style="display:flex;gap:5px;flex-wrap:wrap;margin-top:6px;">
+          ${item.tags.map(t=>`<span class="record-tag">${safe(t)}</span>`).join('')}
+        </div>` : ''}
       </div>
       <div style="display:flex;gap:8px;align-items:center;flex-shrink:0;flex-wrap:wrap;">
         <a href="${safe(item.url)}" target="_blank" rel="noopener"
@@ -640,6 +732,10 @@ function openEditModal(id) {
   document.getElementById('e_desc').value    = item.desc    || '';
   document.getElementById('e_image').value   = item.image   || '';
 
+  // Load tags
+  _currentTags['e'] = Array.isArray(item.tags) ? [...item.tags] : [];
+  renderTagsList('e');
+
   document.getElementById('editModal').classList.add('open');
   document.body.style.overflow = 'hidden';
 }
@@ -665,6 +761,7 @@ async function handleEditSave() {
   const deadline= document.getElementById('e_deadline').value;
   const desc    = document.getElementById('e_desc').value.trim();
   const image   = document.getElementById('e_image').value.trim();
+  const tags    = [..._currentTags['e']];
 
   if (!title||!url||!type||!funding||!country||!deadline||!desc) {
     showToast('⚠️ يرجى ملء جميع الحقول', 'warning'); return;
@@ -674,7 +771,7 @@ async function handleEditSave() {
   const original = _allRecords.find(r => r.id === _editingId);
   try {
     await HorizonDB.save({ id:_editingId, title, url, type, funding, country, deadline, desc,
-                           image:image||'', createdAt: original?.createdAt });
+                           image:image||'', tags, createdAt: original?.createdAt });
     HorizonApp.broadcastUpdate();
     closeEditModal();
     showToast('✦ تم تحديث الفرصة بنجاح', 'success');
@@ -695,6 +792,7 @@ async function handleSave() {
   const deadline= document.getElementById('f_deadline').value;
   const desc    = document.getElementById('f_desc').value.trim();
   const image   = document.getElementById('f_image').value.trim();
+  const tags    = [..._currentTags['f']];
 
   if (!title||!url||!type||!funding||!country||!deadline||!desc) {
     showToast('⚠️ يرجى ملء جميع الحقول المطلوبة','warning'); return;
@@ -702,7 +800,7 @@ async function handleSave() {
   try { new URL(url); } catch { showToast('✕ رابط التقديم غير صالح','error'); return; }
 
   try {
-    await HorizonDB.save({title,url,type,funding,country,deadline,desc,image:image||''});
+    await HorizonDB.save({title,url,type,funding,country,deadline,desc,image:image||'',tags});
     HorizonApp.broadcastUpdate();
     clearForm();
     showToast('✦ تمت إضافة الفرصة بنجاح','success');
@@ -713,6 +811,8 @@ function clearForm() {
   ['f_title','f_url','f_country','f_deadline','f_desc','f_image'].forEach(id => document.getElementById(id).value='');
   document.getElementById('f_type').value='';
   document.getElementById('f_funding').value='';
+  _currentTags['f'] = [];
+  renderTagsList('f');
 }
 
 async function handleDelete(id) {
@@ -797,6 +897,67 @@ function confirmClearAll() {
       showToast('✓ تم مسح جميع البيانات','info');
     } catch (err) { showToast('✕ فشل المسح','error'); }
   });
+}
+
+/* ══════════════════════════════════════════
+ TAGS ENGINE
+ ══════════════════════════════════════════ */
+const _currentTags = { f: [], e: [] };
+
+function handleTagKey(event, prefix) {
+  if (event.key === 'Enter' || event.key === ',') {
+    event.preventDefault();
+    const inputId = prefix === 'f' ? 'f_tags_input' : 'e_tags_input';
+    const val = document.getElementById(inputId).value.trim().replace(/,/g,'');
+    if (val) addTag(val, prefix);
+    document.getElementById(inputId).value = '';
+  } else if (event.key === 'Backspace') {
+    const inputId = prefix === 'f' ? 'f_tags_input' : 'e_tags_input';
+    if (document.getElementById(inputId).value === '' && _currentTags[prefix].length > 0) {
+      _currentTags[prefix].pop();
+      renderTagsList(prefix);
+    }
+  }
+}
+
+function commitTagOnBlur(prefix) {
+  const inputId = prefix === 'f' ? 'f_tags_input' : 'e_tags_input';
+  const val = document.getElementById(inputId)?.value.trim().replace(/,/g,'');
+  if (val) { addTag(val, prefix); document.getElementById(inputId).value = ''; }
+}
+
+function addTag(val, prefix) {
+  const clean = val.trim();
+  if (!clean || _currentTags[prefix].includes(clean) || _currentTags[prefix].length >= 8) return;
+  _currentTags[prefix].push(clean);
+  renderTagsList(prefix);
+}
+
+function removeTag(val, prefix) {
+  _currentTags[prefix] = _currentTags[prefix].filter(t => t !== val);
+  renderTagsList(prefix);
+}
+
+function renderTagsList(prefix) {
+  const listId  = prefix === 'f' ? 'f_tags_list' : 'e_tags_list';
+  const inputId = prefix === 'f' ? 'f_tags_input' : 'e_tags_input';
+  const list    = document.getElementById(listId);
+  const input   = document.getElementById(inputId);
+  if (!list || !input) return;
+
+  // Remove existing chips (everything except the input)
+  [...list.parentElement.querySelectorAll('.tag-chip')].forEach(el => el.remove());
+
+  // Insert chips before input
+  _currentTags[prefix].forEach(tag => {
+    const chip = document.createElement('span');
+    chip.className = 'tag-chip';
+    chip.innerHTML = `${HorizonApp.sanitize(tag)}<button type="button" class="tag-remove-btn" onclick="removeTag('${tag.replace(/'/g,"\\'")}','${prefix}')">✕</button>`;
+    input.parentElement.insertBefore(chip, input);
+  });
+
+  // Update placeholder
+  input.placeholder = _currentTags[prefix].length > 0 ? 'أضف المزيد...' : (prefix==='f'?'مثال: للجزائريين، أونلاين...':'أضف وسماً واضغط Enter...');
 }
 
 /* ══════════════════════════════════════════

@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+  <head>
+	<meta charset="UTF-8"/>
+	<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+	<title>404 — الصفحة غير موجودة | بوابة الأفق</title>
+	<meta name="robots" content="noindex"/>
+	<meta name="theme-color" content="#050508"/>
+	<link rel="preconnect" href="https://fonts.googleapis.com"/>
+	<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+	<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;500;600;700;900&family=Tajawal:wght@300;400;500;700;800&display=swap" rel="stylesheet"/>
+	<link rel="stylesheet" href="css/style.css"/>
+<style>
+  .nf-wrap {
+    min-height:100vh;display:flex;align-items:center;justify-content:center;
+    flex-direction:column;text-align:center;padding:40px 24px;
+    position:relative;z-index:10;
+  }
+  .nf-404 {
+    font-family:'Cairo',sans-serif;font-size:clamp(5rem,22vw,9rem);
+    font-weight:900;line-height:1;
+    background:linear-gradient(135deg,#fbbf24 0%,#f59e0b 40%,#fde68a 80%,#fbbf24 100%);
+    background-size:200% auto;
+    -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
+    animation:float404 3s ease-in-out infinite, shimmer404 4s linear infinite;
+    margin-bottom:8px;
+  }
+  @keyframes float404  { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-14px)} }
+  @keyframes shimmer404{ to{background-position:200% center} }
+
+  .nf-emoji { font-size:3rem;display:block;margin-bottom:16px;animation:spin404 8s linear infinite; }
+  @keyframes spin404 { 0%{transform:rotate(0deg)} 100%{transform:rotate(360deg)} }
+
+  .nf-title {
+    font-family:'Cairo',sans-serif;font-size:clamp(1.2rem,3vw,1.6rem);
+    font-weight:800;color:var(--text-main);margin-bottom:10px;
+  }
+  .nf-sub {
+    color:var(--text-muted);font-size:0.9rem;max-width:420px;
+    line-height:1.8;margin-bottom:32px;
+  }
+  .nf-btns { display:flex;gap:12px;flex-wrap:wrap;justify-content:center;margin-bottom:48px; }
+
+  .nf-suggest-title {
+    font-size:0.78rem;color:var(--text-subtle);margin-bottom:14px;
+    font-family:'Cairo',sans-serif;
+  }
+  .nf-suggest-grid {
+    display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));
+    gap:10px;max-width:520px;width:100%;
+  }
+  .nf-suggest-card {
+    background:rgba(255,255,255,0.02);border:1px solid var(--card-border);
+    border-radius:14px;padding:16px 14px;text-align:center;
+    text-decoration:none;transition:all 0.25s;display:block;
+  }
+  .nf-suggest-card:hover {
+    background:var(--gold-dim);border-color:rgba(251,191,36,0.3);
+    transform:translateY(-2px);
+  }
+  .nf-suggest-icon  { font-size:1.6rem;display:block;margin-bottom:6px; }
+  .nf-suggest-label { font-size:0.78rem;color:var(--text-muted);font-family:'Cairo',sans-serif; }
+  .nf-suggest-card:hover .nf-suggest-label { color:var(--gold); }
+
+  .nf-countdown {
+    font-size:0.75rem;color:var(--text-subtle);margin-top:24px;
+    font-family:'Cairo',sans-serif;
+  }
+  .nf-countdown span { color:var(--gold);font-weight:700; }
+</style>
+  </head>
+  <body>
+	<div class="bg-mesh"></div>
+
+	<div class="nf-wrap">
+
+	  <span class="nf-emoji">🌅</span>
+	  <div class="nf-404">404</div>
+
+	  <h1 class="nf-title">الصفحة غير موجودة</h1>
+	  <p class="nf-sub">
+		يبدو أن الصفحة التي تبحث عنها انتقلت لمكان آخر أو لم تعد موجودة.
+		لكن لا تقلق — هناك فرص رائعة في انتظارك!
+	  </p>
+
+	  <div class="nf-btns">
+		<a href="index.html"         class="btn btn-primary">🏠 الصفحة الرئيسية</a>
+		<a href="opportunities.html" class="btn btn-secondary">📋 استعرض الفرص</a>
+	  </div>
+
+	  <p class="nf-suggest-title">أو ابحث في هذه الأقسام:</p>
+	  <div class="nf-suggest-grid">
+		<a href="opportunities.html?filter=منحة دراسية" class="nf-suggest-card">
+		  <span class="nf-suggest-icon">🎓</span>
+		  <span class="nf-suggest-label">منح دراسية</span>
+		</a>
+		<a href="opportunities.html?filter=تدريب مهني" class="nf-suggest-card">
+		  <span class="nf-suggest-icon">💼</span>
+		  <span class="nf-suggest-label">تدريبات مهنية</span>
+		</a>
+		<a href="opportunities.html?filter=برنامج قيادي" class="nf-suggest-card">
+		  <span class="nf-suggest-icon">⭐</span>
+		  <span class="nf-suggest-label">برامج قيادية</span>
+		</a>
+		<a href="saved.html" class="nf-suggest-card">
+		  <span class="nf-suggest-icon">🔖</span>
+		  <span class="nf-suggest-label">محفوظاتي</span>
+		</a>
+	  </div>
+
+	  <p class="nf-countdown" id="cdMsg"></p>
+
+	</div>
+
+	<script src="js/horizon-db.js"></script>
+	<script src="js/app-advanced.js"></script>
+<script>
+  HorizonApp.initTheme();
+
+  // Auto-redirect countdown
+  let s = 12;
+  const el = document.getElementById('cdMsg');
+  function tick() {
+    el.innerHTML = `إعادة التوجيه تلقائياً خلال <span>${s}</span> ثانية...`;
+    if (--s < 0) { location.replace('index.html'); return; }
+    setTimeout(tick, 1000);
+  }
+  tick();
+</script>
+  </body>
+</html>
+

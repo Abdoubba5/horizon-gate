@@ -337,6 +337,28 @@
     color: var(--text-main);
   }
 
+  /* ── Tag cloud pill ── */
+  .tag-cloud-pill {
+    background: rgba(255,255,255,0.03);
+    border: 1px solid rgba(255,255,255,0.07);
+    border-radius: 999px; padding: 4px 12px;
+    font-size: 0.74rem; color: var(--text-muted);
+    cursor: pointer; transition: all 0.2s; white-space: nowrap;
+    font-family: 'Cairo', sans-serif; font-weight: 600;
+  }
+  .tag-cloud-pill:hover { background: rgba(251,191,36,0.08); color: #fbbf24; border-color: rgba(251,191,36,0.25); }
+  .tag-cloud-pill.active { background: rgba(251,191,36,0.12); border-color: rgba(251,191,36,0.4); color: #fbbf24; }
+
+  /* ── Card tags ── */
+  .card-tags-row { display: flex; gap: 5px; flex-wrap: wrap; }
+  .card-tag-badge {
+    font-size: 0.66rem; padding: 2px 8px; border-radius: 999px;
+    background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.07);
+    color: var(--text-muted); font-family: 'Cairo', sans-serif;
+    transition: all 0.15s; cursor: pointer;
+  }
+  .card-tag-badge:hover { background: rgba(251,191,36,0.08); color: #fbbf24; border-color: rgba(251,191,36,0.2); }
+
   /* ── Empty State ── */
   .opp-empty {
     grid-column: 1/-1; text-align: center; padding: 80px 24px;
@@ -445,6 +467,12 @@
 		<button class="opp-pill fund-part"    data-fund="ممولة جزئياً"  onclick="onFundFilter(this)">◈ ممولة جزئياً</button>
 		<button class="opp-pill active-only"  data-special="active"      onclick="onSpecialFilter(this)">🟢 النشطة فقط</button>
 	  </div>
+
+	  <!-- Tags cloud — built dynamically -->
+	  <div class="opp-pills-row" id="tagCloudRow" style="display:none;">
+		<span style="font-size:0.73rem;color:var(--text-subtle);font-family:'Cairo',sans-serif;margin-left:4px;">🏷️ الوسوم:</span>
+		<div id="tagCloud" style="display:flex;gap:6px;flex-wrap:wrap;"></div>
+	  </div>
 	</div>
 
 	<!-- Results info -->
@@ -482,8 +510,9 @@ const CAT_ICONS  = {'الكل':'🌐','منحة دراسية':'🎓','تدريب
 let _allItems      = [];
 let _searchQ       = '';
 let _activeCat     = 'الكل';
-let _activeFund    = '';     // '' | 'ممولة بالكامل' | 'ممولة جزئياً'
+let _activeFund    = '';
 let _activeOnly    = false;
+let _activeTag     = '';      // ← جديد
 let _sortMode      = 'newest';
 let _visibleCount  = 12;
 const PAGE_SIZE    = 12;
@@ -492,12 +521,11 @@ const PAGE_SIZE    = 12;
  INIT
  ═══════════════════════════════════════════ */
 async function init() {
-  // Check URL param for pre-filter from index categories
   const params = new URLSearchParams(location.search);
   const filterParam = params.get('filter');
-  if (filterParam && CATEGORIES.includes(filterParam)) {
-    _activeCat = filterParam;
-  }
+  const tagParam    = params.get('tag');
+  if (filterParam && CATEGORIES.includes(filterParam)) _activeCat = filterParam;
+  if (tagParam) _activeTag = decodeURIComponent(tagParam);
 
   buildCatPills();
   HorizonApp.registerPage('index', renderAll);
@@ -558,6 +586,33 @@ function onSpecialFilter(btn) {
   renderAll();
 }
 
+function onTagFilter(tag) {
+  _activeTag = _activeTag === tag ? '' : tag;
+  _visibleCount = PAGE_SIZE;
+  buildTagCloud(_allItems);
+  renderAll();
+}
+
+function buildTagCloud(items) {
+  const tagMap = {};
+  items.forEach(item => {
+    if (!Array.isArray(item.tags)) return;
+    item.tags.forEach(t => { tagMap[t] = (tagMap[t]||0)+1; });
+  });
+  const tags = Object.entries(tagMap).sort((a,b)=>b[1]-a[1]);
+  const row   = document.getElementById('tagCloudRow');
+  const cloud = document.getElementById('tagCloud');
+  if (!cloud || !row) return;
+  if (!tags.length) { row.style.display='none'; return; }
+  row.style.display = 'flex';
+  cloud.innerHTML = tags.map(([tag, count]) => `
+    <button class="tag-cloud-pill ${_activeTag===tag?'active':''}"
+            onclick="onTagFilter('${HorizonApp.sanitize(tag).replace(/'/g,"\\'")}')">
+      ${HorizonApp.sanitize(tag)}
+      <span style="opacity:0.5;font-size:0.65rem;margin-right:3px;">${count}</span>
+    </button>`).join('');
+}
+
 /* ═══════════════════════════════════════════
  MAIN RENDER
  ═══════════════════════════════════════════ */
@@ -570,8 +625,13 @@ async function renderAll() {
     if (_activeCat !== 'الكل' && item.type !== _activeCat) return false;
     if (_activeFund && item.funding !== _activeFund) return false;
     if (_activeOnly && HorizonApp.isExpired(item.deadline)) return false;
+    // Tag filter
+    if (_activeTag) {
+      if (!Array.isArray(item.tags) || !item.tags.includes(_activeTag)) return false;
+    }
     if (_searchQ) {
-      const hay = [item.title,item.type,item.country,item.desc,item.funding]
+      const tagsText = Array.isArray(item.tags) ? item.tags.join(' ') : '';
+      const hay = [item.title,item.type,item.country,item.desc,item.funding,tagsText]
         .filter(Boolean).join(' ').toLowerCase();
       if (!hay.includes(_searchQ)) return false;
     }
@@ -584,6 +644,9 @@ async function renderAll() {
   // Results info
   const info = document.getElementById('resultsInfo');
   info.innerHTML = `عرض <span>${Math.min(_visibleCount, filtered.length)}</span> من <span>${filtered.length}</span> نتيجة`;
+
+  // Tag cloud
+  buildTagCloud(_allItems);
 
   const grid = document.getElementById('oppGrid');
 
@@ -668,6 +731,11 @@ function buildCard(item, idx) {
   </div>
 
   <div class="hzn-desc">${safe(item.desc)}</div>
+
+  ${Array.isArray(item.tags) && item.tags.length ? `
+  <div class="card-tags-row">
+    ${item.tags.map(t=>`<span class="card-tag-badge" onclick="onTagFilter('${safe(t).replace(/'/g,"\\'")}');event.stopPropagation();">#${safe(t)}</span>`).join('')}
+  </div>` : ''}
 
   <div class="hzn-card-footer">
     <span class="hzn-cd cd-${cdClass}">${cdText}</span>
