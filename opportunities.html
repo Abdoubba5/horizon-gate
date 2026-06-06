@@ -1,0 +1,773 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+  <head>
+	<meta charset="UTF-8" />
+	<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+	<title>الفرص | بوابة الأفق</title>
+	<meta name="description" content="استعرض جميع الفرص المتاحة — منح دراسية، تدريبات، مسابقات، ومؤتمرات دولية." />
+	<meta name="theme-color" content="#050508" />
+	<link rel="preconnect" href="https://fonts.googleapis.com" />
+	<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+	<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;500;600;700;900&family=Tajawal:wght@300;400;500;700;800&display=swap" rel="stylesheet" />
+	<link rel="stylesheet" href="css/style.css" />
+<style>
+  /* ── Opportunities page specific ── */
+
+  .opp-nav {
+    position: sticky; top: 0; z-index: 50;
+    background: rgba(5,5,8,0.88);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border-bottom: 1px solid var(--card-border);
+    padding: 14px 28px;
+    display: flex; align-items: center;
+    justify-content: space-between; gap: 16px;
+    flex-wrap: wrap;
+  }
+  [data-theme="light"] .opp-nav { background: rgba(245,245,247,0.92); }
+
+  .opp-nav-logo {
+    display: flex; align-items: center; gap: 10px;
+    font-family: 'Cairo', sans-serif; font-size: 1.05rem; font-weight: 800;
+    color: #fbbf24; text-decoration: none;
+  }
+
+  .opp-nav-logo-icon {
+    width: 34px; height: 34px;
+    background: linear-gradient(135deg,#fbbf24,#f59e0b);
+    border-radius: 9px; display: flex; align-items: center;
+    justify-content: center; font-size: 0.95rem;
+  }
+
+  .opp-nav-links { display: flex; gap: 6px; }
+
+  .opp-nav-pill {
+    padding: 7px 14px; border-radius: 8px; font-size: 0.8rem;
+    font-family: 'Cairo', sans-serif; font-weight: 600;
+    color: var(--text-muted); transition: all 0.2s;
+    text-decoration: none; border: 1px solid transparent;
+  }
+  .opp-nav-pill:hover { color: var(--text-main); background: rgba(255,255,255,0.05); border-color: var(--card-border); }
+  .opp-nav-pill.active { color: #fbbf24; background: rgba(251,191,36,0.08); border-color: rgba(251,191,36,0.2); }
+
+  /* ── Page Header ── */
+  .opp-page-header {
+    position: relative; z-index: 10;
+    text-align: center; padding: 52px 24px 36px;
+    max-width: 700px; margin: 0 auto;
+  }
+
+  .opp-page-eyebrow {
+    display: inline-flex; align-items: center; gap: 7px;
+    background: rgba(251,191,36,0.07); border: 1px solid rgba(251,191,36,0.18);
+    border-radius: 999px; padding: 5px 16px;
+    font-size: 0.76rem; color: #fbbf24;
+    font-family: 'Cairo', sans-serif; font-weight: 600;
+    letter-spacing: 0.07em; margin-bottom: 18px;
+  }
+
+  .opp-page-title {
+    font-family: 'Cairo', sans-serif;
+    font-size: clamp(1.8rem,5vw,2.8rem);
+    font-weight: 900; color: var(--text-main);
+    margin-bottom: 10px; line-height: 1.15;
+  }
+
+  .opp-page-title span {
+    background: linear-gradient(135deg,#fbbf24,#fde68a);
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .opp-page-sub {
+    font-size: 0.9rem; color: var(--text-muted);
+    line-height: 1.8; max-width: 480px; margin: 0 auto;
+  }
+
+  /* ── Live Stats Chips ── */
+  .opp-stats-row {
+    display: flex; justify-content: center;
+    gap: 10px; flex-wrap: wrap;
+    padding: 0 24px 28px;
+    position: relative; z-index: 10;
+  }
+
+  /* ── Toolbar ── */
+  .opp-toolbar {
+    position: relative; z-index: 10;
+    max-width: 1100px; margin: 0 auto 28px;
+    padding: 0 24px;
+    display: flex; flex-direction: column; gap: 14px;
+  }
+
+  .opp-search-row {
+    display: flex; gap: 12px; align-items: center; flex-wrap: wrap;
+  }
+
+  .opp-search-box {
+    flex: 1; min-width: 200px;
+    position: relative;
+  }
+
+  .opp-search-icon {
+    position: absolute; right: 16px; top: 50%;
+    transform: translateY(-50%);
+    color: var(--text-muted); pointer-events: none; font-size: 0.95rem;
+  }
+
+  .opp-search-input {
+    width: 100%;
+    background: rgba(255,255,255,0.03);
+    border: 1px solid var(--card-border);
+    border-radius: 12px;
+    padding: 13px 46px 13px 18px;
+    color: var(--text-main); font-size: 0.9rem; outline: none;
+    transition: all 0.3s ease;
+    font-family: 'Tajawal', sans-serif;
+  }
+  .opp-search-input::placeholder { color: var(--text-subtle); }
+  .opp-search-input:focus {
+    border-color: rgba(251,191,36,0.4);
+    background: rgba(255,255,255,0.05);
+    box-shadow: 0 0 0 3px rgba(251,191,36,0.07);
+  }
+
+  /* Sort select */
+  .opp-sort-select {
+    background: rgba(255,255,255,0.03);
+    border: 1px solid var(--card-border);
+    border-radius: 12px;
+    padding: 13px 16px;
+    color: var(--text-muted); font-size: 0.82rem; outline: none;
+    cursor: pointer; transition: all 0.2s;
+    font-family: 'Cairo', sans-serif;
+    min-width: 160px;
+  }
+  .opp-sort-select option { background: #0c0c14; color: var(--text-main); }
+  .opp-sort-select:focus { border-color: rgba(251,191,36,0.3); }
+
+  /* Filter pills row */
+  .opp-pills-row {
+    display: flex; gap: 8px; flex-wrap: wrap;
+    align-items: center;
+  }
+
+  .opp-pill {
+    background: rgba(255,255,255,0.03);
+    border: 1px solid var(--card-border);
+    border-radius: 999px; padding: 6px 15px;
+    font-size: 0.78rem; color: var(--text-muted);
+    cursor: pointer; transition: all 0.25s; white-space: nowrap;
+    font-family: 'Cairo', sans-serif; font-weight: 600;
+    display: flex; align-items: center; gap: 5px;
+  }
+  .opp-pill:hover { background: rgba(251,191,36,0.07); border-color: rgba(251,191,36,0.25); color: #fbbf24; }
+  .opp-pill.active {
+    background: rgba(251,191,36,0.12); border-color: rgba(251,191,36,0.45);
+    color: #fbbf24; font-weight: 700;
+  }
+
+  /* Funding filter */
+  .opp-pill.fund-full.active  { background: rgba(16,185,129,0.1); border-color: rgba(16,185,129,0.4); color: #34d399; }
+  .opp-pill.fund-part.active  { background: rgba(59,130,246,0.1); border-color: rgba(59,130,246,0.35); color: #60a5fa; }
+
+  /* Results count */
+  .results-info {
+    font-size: 0.78rem; color: var(--text-subtle);
+    font-family: 'Cairo', sans-serif;
+    padding: 0 24px;
+    position: relative; z-index: 10;
+    max-width: 1100px; margin: 0 auto 16px;
+  }
+
+  .results-info span { color: #fbbf24; font-weight: 700; }
+
+  /* ── Grid ── */
+  .opp-main-grid {
+    position: relative; z-index: 10;
+    max-width: 1100px; margin: 0 auto;
+    padding: 0 24px 72px;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(310px, 1fr));
+    gap: 18px;
+  }
+
+  /* ── Card upgrade ── */
+  .hzn-card {
+    background: rgba(255,255,255,0.012);
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+    border: 1px solid var(--card-border);
+    border-radius: 18px;
+    padding: 20px;
+    display: flex; flex-direction: column; gap: 13px;
+    transition: all 0.32s cubic-bezier(0.4,0,0.2,1);
+    position: relative; overflow: hidden;
+    animation: cardIn 0.45s ease both;
+    cursor: default;
+  }
+
+  @keyframes cardIn {
+    from { opacity:0; transform: translateY(18px) scale(0.98); }
+    to   { opacity:1; transform: translateY(0) scale(1); }
+  }
+
+  .hzn-card::after {
+    content: '';
+    position: absolute; top: 0; right: 0;
+    width: 3px; height: 100%;
+    border-radius: 0 18px 18px 0;
+    background: var(--cc, #fbbf24);
+    opacity: 0.5; transition: opacity 0.3s, height 0.3s;
+  }
+
+  .hzn-card:hover {
+    border-color: rgba(255,255,255,0.1);
+    box-shadow: 0 8px 40px rgba(0,0,0,0.5), 0 0 0 1px rgba(255,255,255,0.04) inset;
+    transform: translateY(-5px);
+  }
+  .hzn-card:hover::after { opacity: 1; }
+
+  .hzn-card.is-expired {
+    opacity: 0.45; filter: saturate(0.3) brightness(0.8);
+  }
+
+  /* Card top row */
+  .hzn-card-top {
+    display: flex; align-items: flex-start;
+    justify-content: space-between; gap: 8px;
+  }
+
+  .hzn-type-pill {
+    font-family: 'Cairo', sans-serif; font-size: 0.7rem; font-weight: 700;
+    padding: 3px 10px; border-radius: 999px;
+    background: var(--cc, #fbbf24); color: #000;
+    white-space: nowrap; flex-shrink: 0;
+  }
+
+  .hzn-fund-pill {
+    font-family: 'Cairo', sans-serif; font-size: 0.68rem; font-weight: 600;
+    padding: 3px 10px; border-radius: 999px; white-space: nowrap;
+  }
+
+  .hzn-fund-full    { background: rgba(16,185,129,0.12); border:1px solid rgba(16,185,129,0.28); color:#34d399; }
+  .hzn-fund-partial { background: rgba(59,130,246,0.1);  border:1px solid rgba(59,130,246,0.28); color:#60a5fa; }
+  .hzn-fund-none    { background: rgba(156,163,175,0.08); border:1px solid rgba(156,163,175,0.18); color:#9ca3af; }
+
+  .hzn-title {
+    font-family: 'Cairo', sans-serif; font-size: 0.98rem; font-weight: 800;
+    color: var(--text-main); line-height: 1.45;
+  }
+
+  .hzn-meta {
+    display: flex; gap: 14px; flex-wrap: wrap; align-items: center;
+    font-size: 0.77rem; color: var(--text-muted);
+  }
+
+  .hzn-meta-item {
+    display: flex; align-items: center; gap: 4px;
+  }
+
+  .hzn-desc {
+    font-size: 0.82rem; color: var(--text-muted); line-height: 1.75;
+    display: -webkit-box; -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical; overflow: hidden;
+  }
+
+  /* Card footer */
+  .hzn-card-footer {
+    margin-top: auto; padding-top: 13px;
+    border-top: 1px solid rgba(255,255,255,0.04);
+    display: flex; align-items: center;
+    justify-content: space-between; gap: 8px;
+  }
+
+  /* Countdown chip */
+  .hzn-cd {
+    font-family: 'Cairo', sans-serif; font-size: 0.72rem; font-weight: 700;
+    padding: 4px 11px; border-radius: 999px;
+  }
+  .hzn-cd.cd-active  { background: rgba(16,185,129,0.1);  color: #34d399; border:1px solid rgba(16,185,129,0.22); }
+  .hzn-cd.cd-soon    { background: rgba(251,191,36,0.1);  color: #fbbf24; border:1px solid rgba(251,191,36,0.25); }
+  .hzn-cd.cd-urgent  { background: rgba(239,68,68,0.1);   color: #f87171; border:1px solid rgba(239,68,68,0.28); animation: cdPulse 1.4s infinite; }
+  .hzn-cd.cd-expired { background: rgba(75,85,99,0.12);   color: #4b5563; border:1px solid rgba(75,85,99,0.18); }
+
+  @keyframes cdPulse { 0%,100%{opacity:1} 50%{opacity:0.55} }
+
+  /* Apply btn */
+  .hzn-apply-btn {
+    display: inline-flex; align-items: center; gap: 5px;
+    background: rgba(251,191,36,0.08); border: 1px solid rgba(251,191,36,0.25);
+    border-radius: 9px; color: #fbbf24;
+    font-size: 0.78rem; font-weight: 700; font-family: 'Cairo', sans-serif;
+    padding: 7px 14px; transition: all 0.25s; pointer-events: auto;
+    text-decoration: none;
+  }
+  .hzn-apply-btn:hover {
+    background: rgba(251,191,36,0.18); border-color: rgba(251,191,36,0.5);
+    box-shadow: 0 0 14px rgba(251,191,36,0.18); transform: scale(1.04);
+  }
+
+  .hzn-expired-label {
+    font-size: 0.73rem; color: var(--text-subtle);
+    font-family: 'Cairo', sans-serif;
+  }
+
+  /* Save btn */
+  .hzn-save-btn {
+    width: 30px; height: 30px; border-radius: 8px;
+    background: rgba(255,255,255,0.04); border: 1px solid var(--card-border);
+    font-size: 0.82rem; cursor: pointer; transition: all 0.2s;
+    display: flex; align-items: center; justify-content: center;
+    color: var(--text-muted); flex-shrink: 0;
+  }
+  .hzn-save-btn:hover, .hzn-save-btn.saved {
+    background: var(--gold-dim); border-color: rgba(251,191,36,0.4);
+  }
+  /* Detail btn */
+  .hzn-detail-btn {
+    display: inline-flex; align-items: center; gap: 4px;
+    background: rgba(255,255,255,0.04); border: 1px solid var(--card-border);
+    border-radius: 9px; color: var(--text-muted);
+    font-size: 0.75rem; font-weight: 600; font-family: 'Cairo', sans-serif;
+    padding: 6px 10px; transition: all 0.2s; text-decoration: none;
+  }
+  .hzn-detail-btn:hover {
+    background: rgba(255,255,255,0.08); border-color: rgba(255,255,255,0.15);
+    color: var(--text-main);
+  }
+
+  /* ── Empty State ── */
+  .opp-empty {
+    grid-column: 1/-1; text-align: center; padding: 80px 24px;
+    color: var(--text-muted);
+  }
+  .opp-empty-icon { font-size: 3.5rem; display: block; margin-bottom: 16px; opacity: 0.35; }
+  .opp-empty h3 { font-family:'Cairo',sans-serif; font-size:1.1rem; font-weight:700; margin-bottom:8px; }
+  .opp-empty p  { font-size:0.82rem; }
+
+  /* ── Load more ── */
+  .load-more-wrap {
+    text-align: center; padding: 0 24px 60px;
+    position: relative; z-index: 10;
+  }
+
+  /* ── Scroll to top ── */
+  #scrollTopBtn {
+    position: fixed; bottom: 28px; left: 28px; z-index: 200;
+    width: 42px; height: 42px; border-radius: 12px;
+    background: rgba(251,191,36,0.12); border: 1px solid rgba(251,191,36,0.3);
+    color: #fbbf24; font-size: 1rem; cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    transition: all 0.3s; opacity: 0; pointer-events: none;
+    backdrop-filter: blur(10px);
+  }
+  #scrollTopBtn.visible { opacity: 1; pointer-events: auto; }
+  #scrollTopBtn:hover { background: rgba(251,191,36,0.22); transform: translateY(-2px); }
+
+  @media (max-width: 768px) {
+    .opp-main-grid { grid-template-columns: 1fr; padding: 0 16px 60px; }
+    .opp-toolbar { padding: 0 16px; }
+    .opp-stats-row { padding: 0 16px 24px; }
+    .opp-nav { padding: 12px 16px; }
+    .opp-page-header { padding: 36px 16px 24px; }
+  }
+</style>
+  </head>
+  <body>
+
+	<div class="bg-mesh"></div>
+	<div id="toast-container"></div>
+
+	<!-- ░░░ STICKY NAV ░░░ -->
+	<nav class="opp-nav">
+	  <a href="index.html" class="opp-nav-logo">
+		<div class="opp-nav-logo-icon">🌅</div>
+		بوابة الأفق
+	  </a>
+	  <div class="opp-nav-links">
+		<a href="index.html"         class="opp-nav-pill">🏠 الرئيسية</a>
+		<a href="opportunities.html" class="opp-nav-pill active">📋 الفرص</a>
+		<a href="saved.html" style="position:relative;display:inline-flex;">
+		  <span class="opp-nav-pill">🔖 المحفوظات</span>
+		  <span class="reminder-badge"></span>
+		</a>
+		<button class="theme-toggle" id="themeToggle" title="تبديل الوضع">🌙</button>
+	  </div>
+	</nav>
+
+	<!-- ░░░ PAGE HEADER ░░░ -->
+	<div class="opp-page-header">
+	  <div class="opp-page-eyebrow">📋 قاعدة بيانات الفرص</div>
+	  <h1 class="opp-page-title">
+		استعرض <span>جميع الفرص</span>
+	  </h1>
+	  <p class="opp-page-sub">
+		منح دراسية، تدريبات مهنية، برامج قيادية ومسابقات دولية —
+		مُحدَّثة باستمرار، مجانية دائماً
+	  </p>
+	</div>
+
+	<!-- ░░░ STATS ROW ░░░ -->
+	<div class="opp-stats-row">
+	  <div class="stat-chip">إجمالي <span class="stat-num" id="st-total">—</span></div>
+	  <div class="stat-chip">نشطة <span class="stat-num" id="st-active" style="color:#10b981">—</span></div>
+	  <div class="stat-chip">ممولة بالكامل <span class="stat-num" id="st-funded" style="color:#3b82f6">—</span></div>
+	  <div class="stat-chip">منتهية <span class="stat-num" id="st-expired" style="color:#ef4444">—</span></div>
+	</div>
+
+	<!-- ░░░ TOOLBAR ░░░ -->
+	<div class="opp-toolbar">
+
+	  <!-- Search + Sort -->
+	  <div class="opp-search-row">
+		<div class="opp-search-box">
+		  <span class="opp-search-icon">🔍</span>
+		  <input type="text" class="opp-search-input" id="oppSearch"
+			placeholder="ابحث بالعنوان، الدولة، الوصف..."
+			autocomplete="off" oninput="onSearch(this.value)" />
+		</div>
+		<select class="opp-sort-select" id="sortSelect" onchange="onSort(this.value)">
+		  <option value="newest">الأحدث أولاً</option>
+		  <option value="deadline_asc">أقرب موعد أولاً</option>
+		  <option value="deadline_desc">أبعد موعد أولاً</option>
+		  <option value="alpha">أبجدياً</option>
+		</select>
+	  </div>
+
+	  <!-- Category filters -->
+	  <div class="opp-pills-row" id="catPills"></div>
+
+	  <!-- Funding filters -->
+	  <div class="opp-pills-row">
+		<span style="font-size:0.73rem;color:var(--text-subtle);font-family:'Cairo',sans-serif;margin-left:4px;">التمويل:</span>
+		<button class="opp-pill fund-full"    data-fund="ممولة بالكامل" onclick="onFundFilter(this)">✦ ممولة بالكامل</button>
+		<button class="opp-pill fund-part"    data-fund="ممولة جزئياً"  onclick="onFundFilter(this)">◈ ممولة جزئياً</button>
+		<button class="opp-pill active-only"  data-special="active"      onclick="onSpecialFilter(this)">🟢 النشطة فقط</button>
+	  </div>
+	</div>
+
+	<!-- Results info -->
+	<div class="results-info" id="resultsInfo">جارٍ التحميل...</div>
+
+	<!-- ░░░ GRID ░░░ -->
+	<main>
+	  <div class="opp-main-grid" id="oppGrid">
+		<div class="opp-empty">
+		  <span class="opp-empty-icon">⏳</span>
+		  <h3>جارٍ التحميل...</h3>
+		</div>
+	  </div>
+	</main>
+
+	<!-- Scroll top -->
+	<button id="scrollTopBtn" onclick="window.scrollTo({top:0,behavior:'smooth'})">↑</button>
+
+	<!-- Footer -->
+	<footer class="site-footer">
+	  بوابة الأفق — فرص بلا حدود &nbsp;|&nbsp;
+	  <span>Abdelilah Sidiali © 2026</span>
+	</footer>
+
+
+	<script src="js/horizon-db.js"></script>
+	<script src="js/app-advanced.js"></script>
+<script>
+/* ═══════════════════════════════════════════
+ STATE
+ ═══════════════════════════════════════════ */
+const CATEGORIES = ['الكل','منحة دراسية','تدريب مهني','مسابقة','مؤتمر','برنامج تطوعي','فرصة بحثية','برنامج قيادي','أخرى'];
+const CAT_ICONS  = {'الكل':'🌐','منحة دراسية':'🎓','تدريب مهني':'💼','مسابقة':'🏆','مؤتمر':'🎤','برنامج تطوعي':'🤝','فرصة بحثية':'🔬','برنامج قيادي':'⭐','أخرى':'📌'};
+
+let _allItems      = [];
+let _searchQ       = '';
+let _activeCat     = 'الكل';
+let _activeFund    = '';     // '' | 'ممولة بالكامل' | 'ممولة جزئياً'
+let _activeOnly    = false;
+let _sortMode      = 'newest';
+let _visibleCount  = 12;
+const PAGE_SIZE    = 12;
+
+/* ═══════════════════════════════════════════
+ INIT
+ ═══════════════════════════════════════════ */
+async function init() {
+  // Check URL param for pre-filter from index categories
+  const params = new URLSearchParams(location.search);
+  const filterParam = params.get('filter');
+  if (filterParam && CATEGORIES.includes(filterParam)) {
+    _activeCat = filterParam;
+  }
+
+  buildCatPills();
+  HorizonApp.registerPage('index', renderAll);
+  await renderAll();
+}
+
+/* ═══════════════════════════════════════════
+ CAT PILLS BUILD
+ ═══════════════════════════════════════════ */
+function buildCatPills() {
+  const container = document.getElementById('catPills');
+  container.innerHTML = CATEGORIES.map(cat => `
+    <button class="opp-pill ${cat === _activeCat ? 'active' : ''}"
+            onclick="onCatFilter('${cat}')">
+      ${CAT_ICONS[cat] || ''} ${cat}
+    </button>`).join('');
+}
+
+/* ═══════════════════════════════════════════
+ FILTER HANDLERS
+ ═══════════════════════════════════════════ */
+function onSearch(val) {
+  _searchQ = (val||'').trim().toLowerCase();
+  _visibleCount = PAGE_SIZE;
+  renderAll();
+}
+
+function onSort(val) {
+  _sortMode = val;
+  renderAll();
+}
+
+function onCatFilter(cat) {
+  _activeCat = cat;
+  _visibleCount = PAGE_SIZE;
+  buildCatPills();
+  renderAll();
+}
+
+function onFundFilter(btn) {
+  const fund = btn.dataset.fund;
+  if (_activeFund === fund) {
+    _activeFund = '';
+    btn.classList.remove('active');
+  } else {
+    _activeFund = fund;
+    document.querySelectorAll('.opp-pill[data-fund]').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+  }
+  _visibleCount = PAGE_SIZE;
+  renderAll();
+}
+
+function onSpecialFilter(btn) {
+  _activeOnly = !_activeOnly;
+  btn.classList.toggle('active', _activeOnly);
+  _visibleCount = PAGE_SIZE;
+  renderAll();
+}
+
+/* ═══════════════════════════════════════════
+ MAIN RENDER
+ ═══════════════════════════════════════════ */
+async function renderAll() {
+  _allItems = await HorizonDB.getAll();
+  updateStats(_allItems);
+
+  let filtered = _allItems.filter(item => {
+    if (!item) return false;
+    if (_activeCat !== 'الكل' && item.type !== _activeCat) return false;
+    if (_activeFund && item.funding !== _activeFund) return false;
+    if (_activeOnly && HorizonApp.isExpired(item.deadline)) return false;
+    if (_searchQ) {
+      const hay = [item.title,item.type,item.country,item.desc,item.funding]
+        .filter(Boolean).join(' ').toLowerCase();
+      if (!hay.includes(_searchQ)) return false;
+    }
+    return true;
+  });
+
+  // Sort
+  filtered = sortItems(filtered, _sortMode);
+
+  // Results info
+  const info = document.getElementById('resultsInfo');
+  info.innerHTML = `عرض <span>${Math.min(_visibleCount, filtered.length)}</span> من <span>${filtered.length}</span> نتيجة`;
+
+  const grid = document.getElementById('oppGrid');
+
+  if (!filtered.length) {
+    grid.innerHTML = `
+      <div class="opp-empty">
+        <span class="opp-empty-icon">${_searchQ ? '🔍' : '📭'}</span>
+        <h3>${_searchQ ? 'لا توجد نتائج مطابقة' : 'لا توجد فرص متاحة حالياً'}</h3>
+        <p>${_searchQ ? 'جرّب كلمات بحث مختلفة أو غيّر الفلاتر' : 'ترقّب الإضافات القادمة قريباً'}</p>
+      </div>`;
+    document.querySelector('.load-more-wrap') && (document.querySelector('.load-more-wrap').style.display='none');
+    return;
+  }
+
+  const visible = filtered.slice(0, _visibleCount);
+  grid.innerHTML = visible.map((item, i) => buildCard(item, i)).join('');
+
+  // Load more button
+  updateLoadMore(filtered.length);
+}
+
+/* ═══════════════════════════════════════════
+ SORT
+ ═══════════════════════════════════════════ */
+function sortItems(items, mode) {
+  const arr = [...items];
+  switch(mode) {
+    case 'deadline_asc':
+      return arr.sort((a,b) => new Date(a.deadline) - new Date(b.deadline));
+    case 'deadline_desc':
+      return arr.sort((a,b) => new Date(b.deadline) - new Date(a.deadline));
+    case 'alpha':
+      return arr.sort((a,b) => (a.title||'').localeCompare(b.title||'', 'ar'));
+    case 'newest':
+    default:
+      return arr.sort((a,b) => new Date(b.createdAt||0) - new Date(a.createdAt||0));
+  }
+}
+
+/* ═══════════════════════════════════════════
+ STATS
+ ═══════════════════════════════════════════ */
+function updateStats(items) {
+  const total   = items.length;
+  const expired = items.filter(i => HorizonApp.isExpired(i.deadline)).length;
+  document.getElementById('st-total').textContent   = total;
+  document.getElementById('st-active').textContent  = total - expired;
+  document.getElementById('st-funded').textContent  = items.filter(i=>i.funding==='ممولة بالكامل').length;
+  document.getElementById('st-expired').textContent = expired;
+}
+
+/* ═══════════════════════════════════════════
+ CARD BUILDER
+ ═══════════════════════════════════════════ */
+function buildCard(item, idx) {
+  const safe    = s => HorizonApp.sanitize(s||'');
+  const expired = HorizonApp.isExpired(item.deadline);
+  const cdText  = HorizonApp.getCountdown(item.deadline);
+  const cdClass = HorizonApp.getCountdownClass(item.deadline);
+  const cc      = HorizonApp.getCategoryColor(item.type);
+  const delay   = Math.min(idx * 40, 480);
+
+  // Funding pill class
+  let fundClass = 'hzn-fund-none';
+  if (item.funding === 'ممولة بالكامل') fundClass = 'hzn-fund-full';
+  else if (item.funding === 'ممولة جزئياً') fundClass = 'hzn-fund-partial';
+
+  return `
+<div class="hzn-card ${expired ? 'is-expired' : ''}"
+     style="--cc:${cc}; animation-delay:${delay}ms;">
+
+  <div class="hzn-card-top">
+    <span class="hzn-type-pill" style="background:${cc};">${safe(item.type)}</span>
+    <span class="hzn-fund-pill ${fundClass}">${safe(item.funding)}</span>
+  </div>
+
+  <div class="hzn-title">${safe(item.title)}</div>
+
+  <div class="hzn-meta">
+    <span class="hzn-meta-item">🌍 ${safe(item.country)}</span>
+    <span class="hzn-meta-item">📅 ${HorizonApp.formatDate(item.deadline)}</span>
+  </div>
+
+  <div class="hzn-desc">${safe(item.desc)}</div>
+
+  <div class="hzn-card-footer">
+    <span class="hzn-cd cd-${cdClass}">${cdText}</span>
+    <div style="display:flex;gap:7px;align-items:center;">
+      <button class="hzn-save-btn" id="sb-${item.id}"
+        onclick="toggleSaveCard(event,'${item.id}')"
+        title="${HorizonDB.isSaved(item.id)?'محفوظة':'احفظ'}">
+        ${HorizonDB.isSaved(item.id)?'🔖':'🔖'}
+      </button>
+      <a href="opportunity-detail.html?id=${item.id}"
+         class="hzn-detail-btn" style="pointer-events:auto;">التفاصيل</a>
+      ${!expired
+        ? `<a href="${safe(item.url)}" target="_blank" rel="noopener noreferrer"
+              class="hzn-apply-btn">تقدم ←</a>`
+        : `<span class="hzn-expired-label">🔒 منتهية</span>`
+      }
+    </div>
+  </div>
+</div>`;
+}
+
+/* ═══════════════════════════════════════════
+ LOAD MORE
+ ═══════════════════════════════════════════ */
+function updateLoadMore(total) {
+  let wrap = document.querySelector('.load-more-wrap');
+  if (!wrap) {
+    wrap = document.createElement('div');
+    wrap.className = 'load-more-wrap';
+    document.querySelector('main').after(wrap);
+  }
+  if (_visibleCount >= total) {
+    wrap.style.display = 'none';
+  } else {
+    wrap.style.display = 'block';
+    wrap.innerHTML = `
+      <button class="btn btn-secondary" onclick="loadMore()"
+        style="padding:12px 32px;font-size:0.9rem;border-radius:12px;">
+        عرض المزيد (${total - _visibleCount} متبقية)
+      </button>`;
+  }
+}
+
+function loadMore() {
+  _visibleCount += PAGE_SIZE;
+  renderAll();
+}
+
+/* ═══════════════════════════════════════════
+ SAVE TOGGLE (card button)
+ ═══════════════════════════════════════════ */
+function toggleSaveCard(e, id) {
+  e.stopPropagation();
+  const nowSaved = HorizonDB.toggleSaved(id);
+  const btn = document.getElementById('sb-' + id);
+  if (btn) btn.classList.toggle('saved', nowSaved);
+  HorizonApp.updateReminderBadge();
+  showToast(nowSaved ? '🔖 أُضيفت للمحفوظات' : '✕ أُزيلت من المحفوظات', nowSaved ? 'success' : 'info');
+}
+
+function showToast(message, type='info') {
+  const c = document.getElementById('toast-container');
+  const t = document.createElement('div');
+  t.className = `toast ${type}`; t.textContent = message; c.appendChild(t);
+  setTimeout(() => { t.style.animation='toastOut 0.3s ease forwards'; setTimeout(()=>t.remove(),300); }, 3000);
+}
+
+/* ═══════════════════════════════════════════
+ SCROLL TO TOP
+ ═══════════════════════════════════════════ */
+window.addEventListener('scroll', () => {
+  const btn = document.getElementById('scrollTopBtn');
+  btn.classList.toggle('visible', window.scrollY > 400);
+});
+
+/* ═══════════════════════════════════════════
+ BOOT
+ ═══════════════════════════════════════════ */
+// Theme
+const _themeInit = HorizonApp.initTheme();
+const _tBtn = document.getElementById('themeToggle');
+if (_tBtn) {
+  _tBtn.textContent = _themeInit === 'dark' ? '☀️' : '🌙';
+  _tBtn.onclick = () => {
+    const t = HorizonApp.toggleTheme();
+    _tBtn.textContent = t === 'dark' ? '☀️' : '🌙';
+  };
+}
+
+// Reminder badge
+HorizonApp.updateReminderBadge();
+
+// PWA Service Worker
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('./sw.js').catch(() => {});
+}
+
+document.addEventListener('DOMContentLoaded', init);
+if (document.readyState !== 'loading') init();
+</script>
+  </body>
+</html>
+

@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+  <head>
+	<meta charset="UTF-8"/>
+	<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+	<title>فرصي المحفوظة | بوابة الأفق</title>
+	<meta name="theme-color" content="#050508"/>
+	<link rel="preconnect" href="https://fonts.googleapis.com"/>
+	<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+	<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;500;600;700;900&family=Tajawal:wght@300;400;500;700;800&display=swap" rel="stylesheet"/>
+	<link rel="stylesheet" href="css/style.css"/>
+<style>
+  .saved-nav {
+    position:sticky;top:0;z-index:50;
+    background:rgba(5,5,8,0.9);backdrop-filter:blur(20px);
+    border-bottom:1px solid var(--card-border);
+    padding:13px 28px;display:flex;align-items:center;
+    justify-content:space-between;gap:12px;flex-wrap:wrap;
+  }
+  [data-theme="light"] .saved-nav { background:rgba(245,245,247,0.92); }
+
+  .saved-nav-logo {
+    display:flex;align-items:center;gap:9px;
+    font-family:'Cairo',sans-serif;font-size:1rem;font-weight:800;
+    color:var(--gold);text-decoration:none;
+  }
+  .saved-nav-logo-icon {
+    width:32px;height:32px;background:linear-gradient(135deg,#fbbf24,#f59e0b);
+    border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:0.9rem;
+  }
+
+  /* Header */
+  .saved-header {
+    max-width:900px;margin:0 auto;padding:44px 24px 24px;text-align:center;
+  }
+  .saved-eyebrow {
+    display:inline-flex;align-items:center;gap:7px;
+    background:rgba(251,191,36,0.07);border:1px solid rgba(251,191,36,0.18);
+    border-radius:999px;padding:5px 16px;font-size:0.76rem;color:var(--gold);
+    font-family:'Cairo',sans-serif;font-weight:600;margin-bottom:16px;
+  }
+  .saved-title {
+    font-family:'Cairo',sans-serif;font-size:clamp(1.6rem,4vw,2.2rem);
+    font-weight:900;color:var(--text-main);margin-bottom:8px;
+  }
+  .saved-title span {
+    background:linear-gradient(135deg,#fbbf24,#fde68a);
+    -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
+  }
+  .saved-sub { font-size:0.88rem;color:var(--text-muted);line-height:1.8; }
+
+  /* Tabs */
+  .saved-tabs {
+    max-width:900px;margin:0 auto 24px;padding:0 24px;
+    display:flex;gap:8px;border-bottom:1px solid var(--card-border);
+  }
+  .saved-tab {
+    padding:10px 18px;font-family:'Cairo',sans-serif;font-size:0.85rem;
+    font-weight:700;color:var(--text-muted);cursor:pointer;border:none;
+    background:none;border-bottom:2px solid transparent;transition:all 0.2s;margin-bottom:-1px;
+  }
+  .saved-tab.active { color:var(--gold);border-bottom-color:var(--gold); }
+  .saved-tab:hover  { color:var(--text-main); }
+
+  /* Grid */
+  .saved-grid {
+    max-width:900px;margin:0 auto;padding:0 24px 60px;
+    display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:18px;
+    position:relative;z-index:10;
+  }
+
+  /* Card */
+  .saved-card {
+    background:var(--glass-bg);
+    border:1px solid var(--card-border);
+    border-radius:var(--radius-lg);padding:18px;
+    display:flex;flex-direction:column;gap:12px;
+    transition:all 0.3s ease;position:relative;
+    animation:cardIn 0.4s ease both;
+  }
+  .saved-card:hover {
+    border-color:var(--card-border-hover);transform:translateY(-3px);
+    box-shadow:var(--shadow-gold);
+  }
+  .saved-card.is-expired { opacity:0.5;filter:saturate(0.3); }
+
+  /* Remove btn */
+  .saved-remove-btn {
+    position:absolute;top:12px;left:12px;
+    width:28px;height:28px;border-radius:8px;
+    background:rgba(239,68,68,0.1);border:1px solid rgba(239,68,68,0.2);
+    color:#f87171;font-size:0.8rem;cursor:pointer;
+    display:flex;align-items:center;justify-content:center;
+    transition:all 0.2s;opacity:0;
+  }
+  .saved-card:hover .saved-remove-btn { opacity:1; }
+  .saved-remove-btn:hover { background:rgba(239,68,68,0.25);border-color:rgba(239,68,68,0.5); }
+
+  /* Reminder chip */
+  .reminded-chip {
+    display:inline-flex;align-items:center;gap:4px;
+    font-size:0.68rem;font-family:'Cairo',sans-serif;font-weight:600;
+    padding:2px 8px;border-radius:999px;
+    background:rgba(239,68,68,0.08);border:1px solid rgba(239,68,68,0.2);
+    color:#f87171;
+  }
+
+  /* Countdown */
+  .hzn-cd {
+    font-family:'Cairo',sans-serif;font-size:0.72rem;font-weight:700;
+    padding:4px 11px;border-radius:999px;
+  }
+  .hzn-cd.cd-active  { background:rgba(16,185,129,0.1);color:#34d399;border:1px solid rgba(16,185,129,0.22); }
+  .hzn-cd.cd-soon    { background:rgba(251,191,36,0.1);color:var(--gold);border:1px solid rgba(251,191,36,0.25); }
+  .hzn-cd.cd-urgent  { background:rgba(239,68,68,0.1);color:#f87171;border:1px solid rgba(239,68,68,0.28);animation:cdPulse 1.4s infinite; }
+  .hzn-cd.cd-expired { background:rgba(75,85,99,0.12);color:#4b5563;border:1px solid rgba(75,85,99,0.18); }
+  @keyframes cdPulse{0%,100%{opacity:1}50%{opacity:0.55}}
+
+  /* Empty */
+  .saved-empty {
+    grid-column:1/-1;text-align:center;padding:80px 20px;color:var(--text-muted);
+  }
+  .saved-empty .ei { font-size:3.5rem;display:block;margin-bottom:16px;opacity:0.3; }
+  .saved-empty h3  { font-family:'Cairo',sans-serif;font-size:1.1rem;font-weight:700;margin-bottom:8px; }
+  .saved-empty p   { font-size:0.82rem;margin-bottom:20px; }
+
+  /* Funding pills */
+  .hzn-fund-pill { font-family:'Cairo',sans-serif;font-size:0.68rem;font-weight:600;padding:3px 10px;border-radius:999px; }
+  .hzn-fund-full    { background:rgba(16,185,129,0.12);border:1px solid rgba(16,185,129,0.28);color:#34d399; }
+  .hzn-fund-partial { background:rgba(59,130,246,0.1);border:1px solid rgba(59,130,246,0.28);color:#60a5fa; }
+  .hzn-fund-none    { background:rgba(156,163,175,0.08);border:1px solid rgba(156,163,175,0.18);color:#9ca3af; }
+
+  @media(max-width:640px){
+    .saved-grid{grid-template-columns:1fr;padding:0 16px 60px;}
+    .saved-nav{padding:12px 16px;}
+  }
+</style>
+  </head>
+  <body>
+	<div class="bg-mesh"></div>
+	<div id="toast-container"></div>
+
+	<!-- NAV -->
+	<nav class="saved-nav">
+	  <a href="index.html" class="saved-nav-logo">
+		<div class="saved-nav-logo-icon">🌅</div>
+		بوابة الأفق
+	  </a>
+	  <div style="display:flex;gap:8px;align-items:center;">
+		<a href="opportunities.html" class="nav-link" style="font-size:0.8rem;padding:7px 13px;">📋 الفرص</a>
+		<button class="theme-toggle" id="themeToggle" title="تبديل الوضع">🌙</button>
+	  </div>
+	</nav>
+
+	<!-- HEADER -->
+	<div class="saved-header">
+	  <div class="saved-eyebrow">🔖 قائمتك الشخصية</div>
+	  <h1 class="saved-title">فرصي <span>المحفوظة</span></h1>
+	  <p class="saved-sub">قائمة الفرص التي حفظتها — محفوظة على جهازك، خاصة بك تماماً</p>
+	</div>
+
+	<!-- TABS -->
+	<div class="saved-tabs">
+	  <button class="saved-tab active" id="tabSaved" onclick="switchTab('saved')">🔖 المحفوظات (<span id="savedCount">0</span>)</button>
+	  <button class="saved-tab" id="tabReminded" onclick="switchTab('reminded')">🔔 التذكيرات (<span id="remCount">0</span>)</button>
+	</div>
+
+	<!-- GRID -->
+	<div class="saved-grid" id="savedGrid"></div>
+
+	<footer class="site-footer">
+	  بوابة الأفق — <span>Abdelilah Sidiali © 2026</span>
+	</footer>
+
+	<script src="js/horizon-db.js"></script>
+	<script src="js/app-advanced.js"></script>
+<script>
+// Theme
+const _t = HorizonApp.initTheme();
+document.getElementById('themeToggle').textContent = _t==='dark'?'☀️':'🌙';
+document.getElementById('themeToggle').onclick = () => {
+  const t = HorizonApp.toggleTheme();
+  document.getElementById('themeToggle').textContent = t==='dark'?'☀️':'🌙';
+};
+
+let _activeTab = 'saved';
+
+async function renderSaved() {
+  const allItems     = await HorizonDB.getAll();
+  const savedIds     = HorizonDB.getSavedIds();
+  const reminderIds  = HorizonDB.getReminderIds();
+
+  document.getElementById('savedCount').textContent   = savedIds.length;
+  document.getElementById('remCount').textContent     = reminderIds.length;
+
+  let items;
+  if (_activeTab === 'saved') {
+    items = allItems.filter(i => savedIds.includes(i.id));
+  } else {
+    items = allItems.filter(i => reminderIds.includes(i.id));
+  }
+
+  const grid = document.getElementById('savedGrid');
+
+  if (!items.length) {
+    const emptyMsg = _activeTab === 'saved'
+      ? { icon:'🔖', title:'لا توجد فرص محفوظة', sub:'افتح أي فرصة واضغط "احفظ" لإضافتها هنا' }
+      : { icon:'🔔', title:'لا توجد تذكيرات', sub:'افتح أي فرصة واضغط "ذكّرني" لإضافة تذكير' };
+    grid.innerHTML = `
+      <div class="saved-empty">
+        <span class="ei">${emptyMsg.icon}</span>
+        <h3>${emptyMsg.title}</h3>
+        <p>${emptyMsg.sub}</p>
+        <a href="opportunities.html" class="btn btn-primary">← استعرض الفرص</a>
+      </div>`;
+    return;
+  }
+
+  const safe = s => HorizonApp.sanitize(s||'');
+  grid.innerHTML = items.map(item => {
+    const expired  = HorizonApp.isExpired(item.deadline);
+    const cdClass  = HorizonApp.getCountdownClass(item.deadline);
+    const cdText   = HorizonApp.getCountdown(item.deadline);
+    const cc       = HorizonApp.getCategoryColor(item.type);
+    const isRem    = HorizonDB.isReminded(item.id);
+
+    let fClass='hzn-fund-none';
+    if(item.funding==='ممولة بالكامل') fClass='hzn-fund-full';
+    else if(item.funding==='ممولة جزئياً') fClass='hzn-fund-partial';
+
+    return `
+    <div class="saved-card ${expired?'is-expired':''}" id="sc-${safe(item.id)}">
+      <button class="saved-remove-btn" onclick="handleRemove('${safe(item.id)}')" title="إزالة">✕</button>
+
+      <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:8px;padding-left:32px;">
+        <span style="font-family:'Cairo',sans-serif;font-size:0.7rem;font-weight:700;
+          padding:3px 10px;border-radius:999px;background:${cc};color:#000;">${safe(item.type)}</span>
+        <span class="hzn-fund-pill ${fClass}">${safe(item.funding)}</span>
+      </div>
+
+      <div style="font-family:'Cairo',sans-serif;font-size:0.93rem;font-weight:800;color:var(--text-main);line-height:1.4;">
+        ${safe(item.title)}
+      </div>
+
+      <div style="display:flex;gap:12px;font-size:0.77rem;color:var(--text-muted);flex-wrap:wrap;">
+        <span>🌍 ${safe(item.country)}</span>
+        <span>📅 ${HorizonApp.formatDate(item.deadline)}</span>
+        ${isRem ? `<span class="reminded-chip">🔔 مُذكِّر</span>` : ''}
+      </div>
+
+      <div style="display:flex;align-items:center;justify-content:space-between;
+        padding-top:10px;border-top:1px solid var(--card-border);">
+        <span class="hzn-cd cd-${cdClass}">${cdText}</span>
+        ${!expired
+          ? `<a href="opportunity-detail.html?id=${safe(item.id)}"
+               style="pointer-events:auto;font-size:0.78rem;color:var(--gold);
+               font-family:'Cairo',sans-serif;font-weight:700;text-decoration:none;">
+               عرض التفاصيل ←
+             </a>`
+          : `<span style="font-size:0.73rem;color:var(--text-subtle);font-family:'Cairo',sans-serif;">🔒 منتهية</span>`
+        }
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function handleRemove(id) {
+  if (_activeTab === 'saved') {
+    HorizonDB.toggleSaved(id);
+    showToast('✕ أُزيلت من المحفوظات','info');
+  } else {
+    HorizonDB.toggleReminder(id);
+    showToast('🔕 أُزيل التذكير','info');
+  }
+  renderSaved();
+}
+
+function switchTab(tab) {
+  _activeTab = tab;
+  document.getElementById('tabSaved').classList.toggle('active', tab==='saved');
+  document.getElementById('tabReminded').classList.toggle('active', tab==='reminded');
+  renderSaved();
+}
+
+function showToast(message, type='info') {
+  const c=document.getElementById('toast-container');
+  const t=document.createElement('div');
+  t.className=`toast ${type}`;t.textContent=message;c.appendChild(t);
+  setTimeout(()=>{t.style.animation='toastOut 0.3s ease forwards';setTimeout(()=>t.remove(),300);},3000);
+}
+
+document.addEventListener('DOMContentLoaded', renderSaved);
+if (document.readyState !== 'loading') renderSaved();
+</script>
+  </body>
+</html>
+

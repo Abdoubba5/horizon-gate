@@ -1,0 +1,830 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+  <head>
+	<meta charset="UTF-8" />
+	<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+	<title>لوحة التحكم | بوابة الأفق</title>
+	<meta name="robots" content="noindex, nofollow" />
+	<link rel="preconnect" href="https://fonts.googleapis.com" />
+	<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+	<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;500;600;700;900&family=Tajawal:wght@300;400;500;700;800&display=swap" rel="stylesheet" />
+	<link rel="stylesheet" href="css/style.css" />
+<style>
+    /* ── Admin-only styles ── */
+    .confirm-overlay {
+      position:fixed;inset:0;z-index:8888;
+      background:rgba(5,5,8,0.88);backdrop-filter:blur(10px);
+      display:flex;align-items:center;justify-content:center;
+      animation:fadeIn 0.2s ease;
+    }
+    @keyframes fadeIn{from{opacity:0}to{opacity:1}}
+    .confirm-box{
+      background:#0c0c14;border:1px solid rgba(239,68,68,0.3);
+      border-radius:16px;padding:32px;max-width:380px;width:90%;
+      text-align:center;box-shadow:0 0 60px rgba(0,0,0,0.8);
+    }
+    .confirm-box h3{font-family:'Cairo',sans-serif;font-size:1.1rem;color:#f4f4f7;margin-bottom:10px;}
+    .confirm-box p{font-size:0.82rem;color:#9ca3af;margin-bottom:24px;line-height:1.6;}
+    .confirm-actions{display:flex;gap:10px;justify-content:center;}
+
+    /* ── Edit Modal ── */
+    #editModal {
+      position:fixed;inset:0;z-index:9000;
+      background:rgba(5,5,8,0.92);backdrop-filter:blur(14px);
+      display:none;align-items:center;justify-content:center;
+      padding:20px;
+    }
+    #editModal.open{display:flex;animation:fadeIn 0.25s ease;}
+    .edit-modal-box {
+      background:#0c0c14;
+      border:1px solid rgba(251,191,36,0.2);
+      border-radius:20px;padding:30px;
+      width:100%;max-width:680px;
+      max-height:90vh;overflow-y:auto;
+      box-shadow:0 0 80px rgba(0,0,0,0.9),0 0 0 1px rgba(251,191,36,0.06) inset;
+      animation:modalSlide 0.35s cubic-bezier(0.34,1.56,0.64,1) both;
+    }
+    @keyframes modalSlide{
+      from{opacity:0;transform:scale(0.9) translateY(24px)}
+      to{opacity:1;transform:scale(1) translateY(0)}
+    }
+    .edit-modal-header{
+      display:flex;align-items:center;justify-content:space-between;
+      margin-bottom:22px;
+    }
+    .edit-modal-title{
+      font-family:'Cairo',sans-serif;font-size:1.05rem;font-weight:800;
+      background:linear-gradient(135deg,#fbbf24,#fde68a);
+      -webkit-background-clip:text;-webkit-text-fill-color:transparent;
+      background-clip:text;
+    }
+    .modal-close-btn{
+      background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.08);
+      border-radius:8px;width:34px;height:34px;color:#9ca3af;
+      font-size:1rem;cursor:pointer;transition:all 0.2s;
+      display:flex;align-items:center;justify-content:center;
+    }
+    .modal-close-btn:hover{background:rgba(239,68,68,0.15);color:#f87171;border-color:rgba(239,68,68,0.3);}
+
+    /* ── Excel Export btn ── */
+    .btn-excel{
+      background:rgba(16,185,129,0.1);
+      border:1px solid rgba(16,185,129,0.25);
+      color:#34d399;
+    }
+    .btn-excel:hover{background:rgba(16,185,129,0.2);border-color:rgba(16,185,129,0.5);}
+
+    /* Country autocomplete */
+    .country-dropdown {
+      position:absolute;top:100%;right:0;left:0;z-index:999;
+      background:#0c0c14;border:1px solid rgba(251,191,36,0.25);
+      border-radius:10px;max-height:200px;overflow-y:auto;
+      box-shadow:0 8px 30px rgba(0,0,0,0.6);display:none;margin-top:4px;
+    }
+    .country-dropdown.open { display:block; }
+    .country-option {
+      padding:9px 14px;font-size:0.83rem;font-family:'Cairo',sans-serif;
+      color:var(--text-muted);cursor:pointer;transition:all 0.15s;
+      border-bottom:1px solid rgba(255,255,255,0.03);
+    }
+    .country-option:last-child { border-bottom:none; }
+    .country-option:hover { background:rgba(251,191,36,0.08);color:#fbbf24; }
+    .country-option.highlighted { background:rgba(251,191,36,0.12);color:#fbbf24; }
+
+    /* ── Edit btn ── */
+    .btn-edit{
+      background:rgba(251,191,36,0.08);
+      border:1px solid rgba(251,191,36,0.2);
+      color:#fbbf24;font-size:0.78rem;padding:6px 12px;
+    }
+    .btn-edit:hover{background:rgba(251,191,36,0.18);border-color:rgba(251,191,36,0.45);}
+
+    /* form-section title indicator */
+    .form-section-indicator {
+      display:inline-flex;align-items:center;gap:8px;
+      font-size:0.72rem;font-family:'Cairo',sans-serif;
+      background:rgba(251,191,36,0.1);border:1px solid rgba(251,191,36,0.25);
+      color:#fbbf24;border-radius:999px;padding:3px 12px;margin-bottom:14px;
+    }
+    .form-section-indicator.editing{
+      background:rgba(59,130,246,0.1);border-color:rgba(59,130,246,0.3);color:#60a5fa;
+    }
+</style>
+  </head>
+  <body>
+
+	<div class="bg-mesh"></div>
+
+	<!-- ░░░ PASSCODE WALL ░░░ -->
+	<div id="adminLockOverlay">
+	  <div class="lock-box">
+		<div class="lock-icon">🔐</div>
+		<div class="lock-title">بوابة الأفق</div>
+		<div class="lock-subtitle">لوحة تحكم المشرف — أدخل رمز الدخول</div>
+		<div class="passcode-dots">
+		  <div class="dot" id="dot-0"></div>
+		  <div class="dot" id="dot-1"></div>
+		  <div class="dot" id="dot-2"></div>
+		  <div class="dot" id="dot-3"></div>
+		</div>
+		<div class="numpad">
+		  <button class="numpad-key" data-n="1">١</button>
+		  <button class="numpad-key" data-n="2">٢</button>
+		  <button class="numpad-key" data-n="3">٣</button>
+		  <button class="numpad-key" data-n="4">٤</button>
+		  <button class="numpad-key" data-n="5">٥</button>
+		  <button class="numpad-key" data-n="6">٦</button>
+		  <button class="numpad-key" data-n="7">٧</button>
+		  <button class="numpad-key" data-n="8">٨</button>
+		  <button class="numpad-key" data-n="9">٩</button>
+		  <button class="numpad-key" data-n="clear" style="font-size:0.7rem;color:#9ca3af">مسح</button>
+		  <button class="numpad-key" data-n="0">٠</button>
+		  <button class="numpad-key del-key" data-n="del">⌫</button>
+		</div>
+		<div class="lock-error" id="lockError"></div>
+	  </div>
+	</div>
+
+	<!-- ░░░ TOAST ░░░ -->
+	<div id="toast-container"></div>
+
+	<!-- ░░░ EDIT MODAL ░░░ -->
+	<div id="editModal">
+	  <div class="edit-modal-box">
+		<div class="edit-modal-header">
+		  <div class="edit-modal-title">✏️ تعديل الفرصة</div>
+		  <button class="modal-close-btn" onclick="closeEditModal()">✕</button>
+		</div>
+		<div class="form-grid">
+		  <div class="form-group full-width">
+			<label class="form-label">عنوان الفرصة *</label>
+			<input type="text" id="e_title" class="form-input" placeholder="عنوان الفرصة" />
+		  </div>
+		  <div class="form-group full-width">
+			<label class="form-label">رابط التقديم *</label>
+			<input type="url" id="e_url" class="form-input" placeholder="https://..." dir="ltr" />
+		  </div>
+		  <div class="form-group">
+			<label class="form-label">نوع الفرصة *</label>
+			<select id="e_type" class="form-select">
+			  <option value="">اختر النوع</option>
+			  <option>منحة دراسية</option><option>تدريب مهني</option>
+			  <option>مسابقة</option><option>مؤتمر</option>
+			  <option>برنامج تطوعي</option><option>فرصة بحثية</option>
+			  <option>برنامج قيادي</option><option>أخرى</option>
+			</select>
+		  </div>
+		  <div class="form-group">
+			<label class="form-label">نوع التمويل *</label>
+			<select id="e_funding" class="form-select">
+			  <option value="">اختر التمويل</option>
+			  <option>ممولة بالكامل</option>
+			  <option>ممولة جزئياً</option>
+			  <option>غير ممولة</option>
+			</select>
+		  </div>
+		  <div class="form-group">
+			<label class="form-label">دولة الاستضافة *</label>
+			<div style="position:relative;">
+			  <input type="text" id="e_country" class="form-input" placeholder="ابدأ الكتابة..." autocomplete="off"
+				oninput="filterCountries(this.value,'e_country_list')"
+				onfocus="filterCountries(this.value,'e_country_list')"
+				onblur="setTimeout(()=>hideCountryList('e_country_list'),200)" />
+			  <div id="e_country_list" class="country-dropdown"></div>
+			</div>
+		  </div>
+		  <div class="form-group">
+			<label class="form-label">آخر موعد للتقديم *</label>
+			<input type="date" id="e_deadline" class="form-input" />
+		  </div>
+		  <div class="form-group full-width">
+			<label class="form-label">رابط صورة الغلاف (اختياري)</label>
+			<input type="url" id="e_image" class="form-input" placeholder="https://..." dir="ltr" />
+		  </div>
+		  <div class="form-group full-width">
+			<label class="form-label">الوصف التفصيلي *</label>
+			<textarea id="e_desc" class="form-textarea" style="min-height:110px;" placeholder="وصف تفصيلي..."></textarea>
+		  </div>
+		</div>
+		<div style="margin-top:20px;display:flex;gap:10px;flex-wrap:wrap;">
+		  <button class="btn btn-primary" onclick="handleEditSave()">💾 حفظ التعديلات</button>
+		  <button class="btn btn-secondary" onclick="closeEditModal()">إلغاء</button>
+		</div>
+	  </div>
+	</div>
+
+	<!-- ░░░ ADMIN CONTENT ░░░ -->
+	<div id="adminContent" style="display:none;">
+
+	  <nav class="nav-bar">
+		<a href="index.html" class="nav-link">🏠 الرئيسية</a>
+		<a href="opportunities.html" class="nav-link">📋 الفرص</a>
+		<span class="nav-link active">⚙️ لوحة التحكم</span>
+	  </nav>
+
+	  <div class="admin-wrapper">
+
+		<!-- Header -->
+		<div class="admin-header">
+		  <div>
+			<div class="admin-title">⚙️ لوحة تحكم بوابة الأفق</div>
+			<div style="font-size:0.78rem;color:var(--text-muted);margin-top:4px;font-family:'Cairo',sans-serif;">
+			  مركز العمليات الآمن — إدارة الفرص والبيانات
+			</div>
+		  </div>
+		  <div class="admin-actions">
+			<button class="btn btn-excel"     onclick="handleExportExcel()">📊 تصدير Excel</button>
+			<button class="btn btn-success"   onclick="handleExportJSON()">📤 تصدير JSON</button>
+			<button class="btn btn-info"      onclick="document.getElementById('importFile').click()">📥 استيراد JSON</button>
+			<input type="file" id="importFile" accept=".json" style="display:none" onchange="handleImport(event)" />
+			<button class="btn btn-secondary" onclick="confirmClearAll()">🗑️ مسح الكل</button>
+		  </div>
+		</div>
+
+		<!-- Analytics -->
+		<div class="analytics-grid">
+		  <div class="analytics-card" style="--indicator-color:var(--gold);">
+			<span class="analytics-num" id="statTotal">0</span>
+			<span class="analytics-label">إجمالي الفرص</span>
+		  </div>
+		  <div class="analytics-card" style="--indicator-color:#10b981;">
+			<span class="analytics-num" id="statActive" style="color:#10b981">0</span>
+			<span class="analytics-label">فرص نشطة</span>
+		  </div>
+		  <div class="analytics-card" style="--indicator-color:#ef4444;">
+			<span class="analytics-num" id="statExpired" style="color:#ef4444">0</span>
+			<span class="analytics-label">فرص منتهية</span>
+		  </div>
+		  <div class="analytics-card" style="--indicator-color:#3b82f6;">
+			<span class="analytics-num" id="statFullFunded" style="color:#3b82f6">0</span>
+			<span class="analytics-label">ممولة بالكامل</span>
+		  </div>
+		</div>
+
+		<!-- Charts Section -->
+		<div class="form-section" id="chartsSection" style="margin-bottom:24px;">
+		  <div class="section-title">📊 إحصائيات بصرية</div>
+		  <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:20px;">
+			<div style="position:relative;height:220px;">
+			  <canvas id="chartByType"></canvas>
+			</div>
+			<div style="position:relative;height:220px;">
+			  <canvas id="chartByFunding"></canvas>
+			</div>
+			<div style="position:relative;height:220px;">
+			  <canvas id="chartByMonth"></canvas>
+			</div>
+		  </div>
+		</div>
+
+		<!-- Add Form -->
+		<div class="form-section" id="addFormSection">
+		  <div class="section-title">
+			<span id="formModeIndicator" class="form-section-indicator">✦ إضافة فرصة جديدة</span>
+		  </div>
+		  <div class="form-grid">
+			<div class="form-group full-width">
+			  <label class="form-label">عنوان الفرصة *</label>
+			  <input type="text" id="f_title" class="form-input" placeholder="مثال: منحة الجامعة الأوروبية 2026" />
+			</div>
+			<div class="form-group full-width">
+			  <label class="form-label">رابط التقديم *</label>
+			  <input type="url" id="f_url" class="form-input" placeholder="https://example.com/apply" dir="ltr" />
+			</div>
+			<div class="form-group">
+			  <label class="form-label">نوع الفرصة *</label>
+			  <select id="f_type" class="form-select">
+				<option value="">اختر النوع</option>
+				<option>منحة دراسية</option><option>تدريب مهني</option>
+				<option>مسابقة</option><option>مؤتمر</option>
+				<option>برنامج تطوعي</option><option>فرصة بحثية</option>
+				<option>برنامج قيادي</option><option>أخرى</option>
+			  </select>
+			</div>
+			<div class="form-group">
+			  <label class="form-label">نوع التمويل *</label>
+			  <select id="f_funding" class="form-select">
+				<option value="">اختر التمويل</option>
+				<option>ممولة بالكامل</option>
+				<option>ممولة جزئياً</option>
+				<option>غير ممولة</option>
+			  </select>
+			</div>
+			<div class="form-group" style="position:relative;">
+			  <label class="form-label">دولة الاستضافة *</label>
+			  <input type="text" id="f_country" class="form-input" placeholder="ابدأ الكتابة للبحث..." autocomplete="off"
+				oninput="filterCountries(this.value,'f_country_list')"
+				onfocus="filterCountries(this.value,'f_country_list')"
+				onblur="setTimeout(()=>hideCountryList('f_country_list'),200)" />
+			  <div id="f_country_list" class="country-dropdown"></div>
+			</div>
+			<div class="form-group">
+			  <label class="form-label">آخر موعد للتقديم *</label>
+			  <input type="date" id="f_deadline" class="form-input" />
+			</div>
+			<div class="form-group full-width">
+			  <label class="form-label">رابط صورة الغلاف (اختياري)</label>
+			  <input type="url" id="f_image" class="form-input" placeholder="https://example.com/image.jpg" dir="ltr" />
+			</div>
+			<div class="form-group full-width">
+			  <label class="form-label">الوصف التفصيلي *</label>
+			  <textarea id="f_desc" class="form-textarea" placeholder="اكتب وصفاً شاملاً للفرصة، المتطلبات، المزايا..."></textarea>
+			</div>
+		  </div>
+		  <div style="margin-top:18px;display:flex;gap:10px;flex-wrap:wrap;">
+			<button class="btn btn-primary" id="saveBtn" onclick="handleSave()">✦ حفظ الفرصة</button>
+			<button class="btn btn-secondary" onclick="clearForm()">✕ مسح الحقول</button>
+		  </div>
+		</div>
+
+		<!-- Records -->
+		<div class="records-section">
+		  <div class="records-header">
+			<div class="section-title" style="margin:0;">
+			  📋 سجلات الفرص (<span id="recordCount">0</span>)
+			</div>
+			<div class="search-wrapper" style="width:260px;">
+			  <span class="search-icon">🔍</span>
+			  <input type="text" class="search-input" id="adminSearch"
+				placeholder="بحث بالعنوان، النوع، الدولة..."
+				oninput="handleAdminSearch(this.value)" />
+			</div>
+		  </div>
+		  <div class="records-body" id="recordsList">
+			<div class="empty-state">
+			  <span class="empty-icon">📭</span>
+			  <h3>لا توجد فرص مضافة بعد</h3>
+			</div>
+		  </div>
+		</div>
+
+	  </div>
+
+	  <footer class="site-footer">
+		بوابة الأفق | لوحة التحكم — <span>Abdelilah Sidiali © 2026</span>
+	  </footer>
+	</div>
+
+
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+	<script src="js/countries.js"></script>
+	<script src="js/horizon-db.js"></script>
+	<script src="js/app-advanced.js"></script>
+<script>
+/* ══════════════════════════════════════════
+ SECURITY
+ ══════════════════════════════════════════ */
+document.addEventListener('contextmenu', e => e.preventDefault());
+document.addEventListener('keydown', e => {
+  if (e.key === 'F12') { e.preventDefault(); return false; }
+  if (e.ctrlKey && e.shiftKey && ['I','J','C','K'].includes(e.key.toUpperCase())) { e.preventDefault(); return false; }
+  if (e.ctrlKey && e.key.toUpperCase() === 'U') { e.preventDefault(); return false; }
+  if (e.ctrlKey && e.key.toUpperCase() === 'S') { e.preventDefault(); return false; }
+});
+
+/* ══════════════════════════════════════════
+ PASSCODE
+ ══════════════════════════════════════════ */
+const MASTER_PASSCODE = "1234";
+let enteredCode = "";
+
+function updateDots() {
+  for (let i = 0; i < 4; i++)
+    document.getElementById(`dot-${i}`).classList.toggle('filled', i < enteredCode.length);
+}
+
+function handleNumpadInput(n) {
+  if (n === 'del')   { enteredCode = enteredCode.slice(0,-1); document.getElementById('lockError').textContent=''; }
+  else if (n==='clear'){ enteredCode=''; document.getElementById('lockError').textContent=''; }
+  else { if (enteredCode.length >= 4) return; enteredCode += n; }
+  updateDots();
+  if (enteredCode.length === 4) setTimeout(verifyPasscode, 150);
+}
+
+function verifyPasscode() {
+  if (enteredCode === MASTER_PASSCODE) {
+    sessionStorage.setItem('admin_authenticated','true');
+    const ov = document.getElementById('adminLockOverlay');
+    ov.classList.add('fade-out');
+    document.getElementById('adminContent').style.display = 'block';
+    setTimeout(() => ov.remove(), 600);
+    initAdminPage();
+  } else {
+    const err = document.getElementById('lockError');
+    err.textContent = '✕ رمز الدخول غير صحيح، حاول مرة أخرى';
+    err.style.animation = 'none';
+    requestAnimationFrame(() => { err.style.animation = 'shake 0.4s ease'; });
+    enteredCode = ''; updateDots();
+  }
+}
+
+document.querySelectorAll('.numpad-key').forEach(btn =>
+  btn.addEventListener('click', () => handleNumpadInput(btn.dataset.n))
+);
+document.addEventListener('keydown', e => {
+  if (!document.getElementById('adminLockOverlay')) return;
+  if (e.key >= '0' && e.key <= '9') handleNumpadInput(e.key);
+  else if (e.key === 'Backspace') handleNumpadInput('del');
+  else if (e.key === 'Escape') handleNumpadInput('clear');
+});
+
+if (sessionStorage.getItem('admin_authenticated') === 'true') {
+  document.getElementById('adminLockOverlay').remove();
+  document.getElementById('adminContent').style.display = 'block';
+  initAdminPage();
+}
+
+/* ══════════════════════════════════════════
+ STATE
+ ══════════════════════════════════════════ */
+let _adminSearchQuery = '';
+let _allRecords = [];
+let _editingId   = null;
+let _charts      = {};
+
+async function initAdminPage() {
+  HorizonApp.registerPage('admin', renderAdmin);
+  await renderAdmin();
+}
+
+async function renderAdmin() {
+  try {
+    _allRecords = await HorizonDB.getAll();
+    updateAnalytics(_allRecords);
+    renderCharts(_allRecords);
+    renderRecords(_allRecords, _adminSearchQuery);
+  } catch (err) { console.error(err); }
+}
+
+function updateAnalytics(items) {
+  const total   = items.length;
+  const expired = items.filter(i => HorizonApp.isExpired(i.deadline)).length;
+  document.getElementById('statTotal').textContent     = total;
+  document.getElementById('statActive').textContent    = total - expired;
+  document.getElementById('statExpired').textContent   = expired;
+  document.getElementById('statFullFunded').textContent= items.filter(i=>i.funding==='ممولة بالكامل').length;
+  document.getElementById('recordCount').textContent   = total;
+}
+
+/* ══════════════════════════════════════════
+ CHARTS (Chart.js)
+ ══════════════════════════════════════════ */
+const CHART_COLORS = ['#fbbf24','#3b82f6','#a855f7','#10b981','#06b6d4','#f97316','#ec4899','#9ca3af'];
+
+function renderCharts(items) {
+  if (!window.Chart || !items.length) return;
+
+  Chart.defaults.color = '#9ca3af';
+  Chart.defaults.font.family = "'Cairo', sans-serif";
+
+  const baseOpts = {
+    responsive:true, maintainAspectRatio:false,
+    plugins:{ legend:{ position:'bottom', labels:{ padding:12, boxWidth:10, font:{size:10} } } }
+  };
+
+  // 1. By Type (Doughnut)
+  const typeCount = {};
+  items.forEach(i => { typeCount[i.type||'أخرى'] = (typeCount[i.type||'أخرى']||0)+1; });
+  _renderChart('chartByType', 'doughnut',
+    Object.keys(typeCount), Object.values(typeCount), CHART_COLORS, 'توزيع حسب النوع', baseOpts);
+
+  // 2. By Funding (Pie)
+  const fundCount = {};
+  items.forEach(i => { fundCount[i.funding||'غير محدد'] = (fundCount[i.funding||'غير محدد']||0)+1; });
+  _renderChart('chartByFunding', 'pie',
+    Object.keys(fundCount), Object.values(fundCount), ['#10b981','#3b82f6','#9ca3af'], 'توزيع التمويل', baseOpts);
+
+  // 3. By Month (Bar) — createdAt
+  const monthCount = {};
+  const monthNames = ['يناير','فبراير','مارس','أبريل','مايو','يونيو','يوليو','أغسطس','سبتمبر','أكتوبر','نوفمبر','ديسمبر'];
+  items.forEach(i => {
+    if (!i.createdAt) return;
+    const m = new Date(i.createdAt).getMonth();
+    monthCount[m] = (monthCount[m]||0)+1;
+  });
+  const sortedMonths = Object.keys(monthCount).sort((a,b)=>+a-+b);
+  _renderChart('chartByMonth', 'bar',
+    sortedMonths.map(m=>monthNames[+m]), sortedMonths.map(m=>monthCount[m]),
+    '#fbbf24', 'إضافات حسب الشهر', {
+      ...baseOpts,
+      plugins:{ ...baseOpts.plugins, legend:{display:false} },
+      scales:{ y:{ ticks:{color:'#9ca3af',font:{size:10}}, grid:{color:'rgba(255,255,255,0.04)'} },
+               x:{ ticks:{color:'#9ca3af',font:{size:10}}, grid:{color:'rgba(255,255,255,0.02)'} } }
+    });
+}
+
+function _renderChart(canvasId, type, labels, data, colors, title, opts) {
+  const canvas = document.getElementById(canvasId);
+  if (!canvas) return;
+  if (_charts[canvasId]) { _charts[canvasId].destroy(); }
+  _charts[canvasId] = new Chart(canvas, {
+    type,
+    data: {
+      labels,
+      datasets:[{
+        data,
+        backgroundColor: Array.isArray(colors) ? colors : labels.map((_,i)=>CHART_COLORS[i%CHART_COLORS.length]),
+        borderWidth:0,
+        borderRadius: type==='bar'?6:0
+      }]
+    },
+    options: {
+      ...opts,
+      plugins: { ...opts.plugins, title:{ display:true, text:title, color:'#f4f4f7', font:{size:12,weight:'700'} } }
+    }
+  });
+}
+
+/* ══════════════════════════════════════════
+ COUNTRY AUTOCOMPLETE
+ ══════════════════════════════════════════ */
+function filterCountries(val, listId) {
+  const list = document.getElementById(listId);
+  if (!list) return;
+  const q = (val||'').trim().toLowerCase();
+  const source = typeof WORLD_COUNTRIES !== 'undefined' ? WORLD_COUNTRIES : [];
+  const matches = q.length === 0
+    ? source.slice(0, 20)
+    : source.filter(c => c.toLowerCase().includes(q)).slice(0, 15);
+
+  if (!matches.length) { list.classList.remove('open'); return; }
+
+  list.innerHTML = matches.map(c =>
+    `<div class="country-option" onmousedown="pickCountry('${c.replace(/'/g,"\\'")}','${listId}')">${c}</div>`
+  ).join('');
+  list.classList.add('open');
+}
+
+function pickCountry(val, listId) {
+  // Determine which input to fill
+  const inputId = listId === 'f_country_list' ? 'f_country' : 'e_country';
+  document.getElementById(inputId).value = val;
+  hideCountryList(listId);
+}
+
+function hideCountryList(listId) {
+  const list = document.getElementById(listId);
+  if (list) list.classList.remove('open');
+}
+
+/* ══════════════════════════════════════════
+ RECORDS RENDER
+ ══════════════════════════════════════════ */
+function renderRecords(items, query) {
+  const container = document.getElementById('recordsList');
+  const q = (query||'').trim().toLowerCase();
+  let filtered = q
+    ? items.filter(item => [item.title,item.type,item.country,item.desc].filter(Boolean).join(' ').toLowerCase().includes(q))
+    : items;
+
+  if (!filtered.length) {
+    container.innerHTML = `<div class="empty-state">
+      <span class="empty-icon">${q?'🔍':'📭'}</span>
+      <h3>${q?'لا توجد نتائج مطابقة':'لا توجد فرص مضافة بعد'}</h3>
+    </div>`;
+    return;
+  }
+
+  const safe = s => HorizonApp.sanitize(s||'');
+  container.innerHTML = filtered.map(item => {
+    const expired = HorizonApp.isExpired(item.deadline);
+    const catColor = HorizonApp.getCategoryColor(item.type);
+    return `
+    <div class="record-row" id="row-${safe(item.id)}">
+      ${item.image ? `<img src="${safe(item.image)}" style="width:48px;height:48px;border-radius:8px;object-fit:cover;flex-shrink:0;" onerror="this.style.display='none'" />` : ''}
+      <div class="record-info">
+        <div class="record-title">${safe(item.title)}</div>
+        <div class="record-meta">
+          <span style="color:${catColor};font-weight:600;">${safe(item.type)}</span>
+          <span>•</span><span>🌍 ${safe(item.country)}</span>
+          <span>•</span><span>📅 ${HorizonApp.formatDate(item.deadline)}</span>
+          ${expired
+            ? `<span class="status-badge status-expired">🔒 منتهية</span>`
+            : `<span class="status-badge status-active">🟢 نشطة</span>`}
+        </div>
+        <div style="font-size:0.73rem;color:var(--text-subtle);margin-top:4px;">
+          ${safe(item.desc).slice(0,100)}${item.desc&&item.desc.length>100?'...':''}
+        </div>
+      </div>
+      <div style="display:flex;gap:8px;align-items:center;flex-shrink:0;flex-wrap:wrap;">
+        <a href="${safe(item.url)}" target="_blank" rel="noopener"
+           style="pointer-events:auto;font-size:0.75rem;color:var(--accent-blue);font-family:'Cairo',sans-serif;">
+          🔗 الرابط
+        </a>
+        <button class="btn btn-edit" onclick="openEditModal('${safe(item.id)}')">✏️ تعديل</button>
+        <button class="btn btn-danger" onclick="handleDelete('${safe(item.id)}')">🗑️ حذف</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function handleAdminSearch(val) {
+  _adminSearchQuery = val;
+  renderRecords(_allRecords, _adminSearchQuery);
+}
+
+/* ══════════════════════════════════════════
+ EDIT MODAL
+ ══════════════════════════════════════════ */
+function openEditModal(id) {
+  const item = _allRecords.find(r => r.id === id);
+  if (!item) return;
+  _editingId = id;
+
+  document.getElementById('e_title').value   = item.title   || '';
+  document.getElementById('e_url').value     = item.url     || '';
+  document.getElementById('e_type').value    = item.type    || '';
+  document.getElementById('e_funding').value = item.funding || '';
+  document.getElementById('e_country').value = item.country || '';
+  document.getElementById('e_deadline').value= item.deadline|| '';
+  document.getElementById('e_desc').value    = item.desc    || '';
+  document.getElementById('e_image').value   = item.image   || '';
+
+  document.getElementById('editModal').classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+
+function closeEditModal() {
+  _editingId = null;
+  document.getElementById('editModal').classList.remove('open');
+  document.body.style.overflow = '';
+}
+
+// Close on overlay click
+document.getElementById('editModal').addEventListener('click', e => {
+  if (e.target === document.getElementById('editModal')) closeEditModal();
+});
+
+async function handleEditSave() {
+  if (!_editingId) return;
+  const title   = document.getElementById('e_title').value.trim();
+  const url     = document.getElementById('e_url').value.trim();
+  const type    = document.getElementById('e_type').value;
+  const funding = document.getElementById('e_funding').value;
+  const country = document.getElementById('e_country').value.trim();
+  const deadline= document.getElementById('e_deadline').value;
+  const desc    = document.getElementById('e_desc').value.trim();
+  const image   = document.getElementById('e_image').value.trim();
+
+  if (!title||!url||!type||!funding||!country||!deadline||!desc) {
+    showToast('⚠️ يرجى ملء جميع الحقول', 'warning'); return;
+  }
+  try { new URL(url); } catch { showToast('✕ رابط غير صالح','error'); return; }
+
+  const original = _allRecords.find(r => r.id === _editingId);
+  try {
+    await HorizonDB.save({ id:_editingId, title, url, type, funding, country, deadline, desc,
+                           image:image||'', createdAt: original?.createdAt });
+    HorizonApp.broadcastUpdate();
+    closeEditModal();
+    showToast('✦ تم تحديث الفرصة بنجاح', 'success');
+  } catch (err) {
+    showToast('✕ فشل التحديث: ' + err.message, 'error');
+  }
+}
+
+/* ══════════════════════════════════════════
+ ADD FORM
+ ══════════════════════════════════════════ */
+async function handleSave() {
+  const title   = document.getElementById('f_title').value.trim();
+  const url     = document.getElementById('f_url').value.trim();
+  const type    = document.getElementById('f_type').value;
+  const funding = document.getElementById('f_funding').value;
+  const country = document.getElementById('f_country').value.trim();
+  const deadline= document.getElementById('f_deadline').value;
+  const desc    = document.getElementById('f_desc').value.trim();
+  const image   = document.getElementById('f_image').value.trim();
+
+  if (!title||!url||!type||!funding||!country||!deadline||!desc) {
+    showToast('⚠️ يرجى ملء جميع الحقول المطلوبة','warning'); return;
+  }
+  try { new URL(url); } catch { showToast('✕ رابط التقديم غير صالح','error'); return; }
+
+  try {
+    await HorizonDB.save({title,url,type,funding,country,deadline,desc,image:image||''});
+    HorizonApp.broadcastUpdate();
+    clearForm();
+    showToast('✦ تمت إضافة الفرصة بنجاح','success');
+  } catch (err) { showToast('✕ خطأ أثناء الحفظ: '+err.message,'error'); }
+}
+
+function clearForm() {
+  ['f_title','f_url','f_country','f_deadline','f_desc','f_image'].forEach(id => document.getElementById(id).value='');
+  document.getElementById('f_type').value='';
+  document.getElementById('f_funding').value='';
+}
+
+async function handleDelete(id) {
+  if (!id) return;
+  showConfirm('حذف السجل','هل أنت متأكد من حذف هذه الفرصة؟ لا يمكن التراجع.', async () => {
+    try {
+      await HorizonDB.delete(id);
+      HorizonApp.broadcastUpdate();
+      showToast('✓ تم حذف السجل','info');
+    } catch (err) { showToast('✕ فشل الحذف: '+err.message,'error'); }
+  });
+}
+
+/* ══════════════════════════════════════════
+ EXPORT JSON
+ ══════════════════════════════════════════ */
+async function handleExportJSON() {
+  const ok = await HorizonApp.exportJSON();
+  showToast(ok ? '📤 تم تصدير النسخة الاحتياطية' : '✕ فشل التصدير', ok?'success':'error');
+}
+
+/* ══════════════════════════════════════════
+ EXPORT EXCEL — دعم عربية كامل
+ ══════════════════════════════════════════ */
+async function handleExportExcel() {
+  try {
+    const data = await HorizonDB.getAll();
+    if (!data.length) { showToast('⚠️ لا توجد بيانات للتصدير','warning'); return; }
+
+    // Build CSV with UTF-8 BOM for Arabic support in Excel
+    const BOM = '\ufeff';
+    const headers = ['العنوان','النوع','التمويل','الدولة','الموعد النهائي','الرابط','الوصف','تاريخ الإضافة'];
+
+    const escape = v => {
+      const str = String(v || '').replace(/"/g, '""');
+      return `"${str}"`;
+    };
+
+    const rows = data.map(item => [
+      escape(item.title),
+      escape(item.type),
+      escape(item.funding),
+      escape(item.country),
+      escape(item.deadline),
+      escape(item.url),
+      escape(item.desc),
+      escape(item.createdAt ? new Date(item.createdAt).toLocaleDateString('ar-DZ') : '')
+    ].join(','));
+
+    const csv = BOM + headers.map(h => `"${h}"`).join(',') + '\n' + rows.join('\n');
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    const url  = URL.createObjectURL(blob);
+    const a    = document.createElement('a');
+    a.href     = url;
+    a.download = `horizon_gate_${new Date().toISOString().slice(0,10)}.csv`;
+    document.body.appendChild(a); a.click();
+    document.body.removeChild(a); URL.revokeObjectURL(url);
+    showToast('📊 تم تصدير ملف Excel بنجاح','success');
+  } catch (err) {
+    showToast('✕ فشل تصدير Excel: '+err.message,'error');
+  }
+}
+
+/* ══════════════════════════════════════════
+ IMPORT JSON
+ ══════════════════════════════════════════ */
+async function handleImport(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+  event.target.value = '';
+  try {
+    const added = await HorizonApp.importJSON(file);
+    showToast(`✦ تم استيراد ${added} سجل جديد`,'success');
+  } catch (err) { showToast('✕ '+err.message,'error'); }
+}
+
+function confirmClearAll() {
+  showConfirm('⚠️ مسح جميع البيانات','سيتم حذف جميع الفرص نهائياً. هذا الإجراء لا يمكن التراجع عنه!', async () => {
+    try {
+      await HorizonDB.clearAll();
+      HorizonApp.broadcastUpdate();
+      showToast('✓ تم مسح جميع البيانات','info');
+    } catch (err) { showToast('✕ فشل المسح','error'); }
+  });
+}
+
+/* ══════════════════════════════════════════
+ UI HELPERS
+ ══════════════════════════════════════════ */
+function showToast(message, type='info') {
+  const c = document.getElementById('toast-container');
+  const t = document.createElement('div');
+  t.className = `toast ${type}`; t.textContent = message;
+  c.appendChild(t);
+  setTimeout(() => { t.style.animation='toastOut 0.3s ease forwards'; setTimeout(()=>t.remove(),300); }, 3200);
+}
+
+function showConfirm(title, message, onConfirm) {
+  const ov = document.createElement('div');
+  ov.className = 'confirm-overlay';
+  ov.innerHTML = `<div class="confirm-box">
+    <h3>${title}</h3><p>${message}</p>
+    <div class="confirm-actions">
+      <button class="btn btn-danger" id="cY">نعم، تأكيد</button>
+      <button class="btn btn-secondary" id="cN">إلغاء</button>
+    </div></div>`;
+  document.body.appendChild(ov);
+  ov.querySelector('#cY').onclick = () => { ov.remove(); onConfirm(); };
+  ov.querySelector('#cN').onclick = () => ov.remove();
+  ov.addEventListener('click', e => { if(e.target===ov) ov.remove(); });
+}
+</script>
+  </body>
+</html>
+
