@@ -249,6 +249,96 @@ const HorizonDB = (() => {
   function setTheme(t)        { localStorage.setItem(THEME_KEY, t); }
 
   // ══════════════════════════════════════════════════════════
+  // REVIEWS — التعليقات والتقييمات
+  // ══════════════════════════════════════════════════════════
+  const REVIEWS_BASE = `${SUPABASE_URL}/rest/v1/reviews`;
+
+  // جلب تعليقات فرصة معينة
+  async function getReviews(oppId) {
+    const data = await req(
+      `${REVIEWS_BASE}?opp_id=eq.${encodeURIComponent(oppId)}&select=*&order=created_at.desc`,
+      { headers: hdrs() }
+    );
+    return data || [];
+  }
+
+  // إضافة تعليق جديد
+  async function addReview(oppId, rating, comment) {
+    if (!oppId || !rating || !comment?.trim()) throw new Error("بيانات التعليق غير مكتملة");
+    const data = await req(REVIEWS_BASE, {
+      method:  "POST",
+      headers: { ...hdrs(), "Prefer": "return=representation" },
+      body:    JSON.stringify({
+        opp_id:  oppId,
+        rating:  parseInt(rating),
+        comment: comment.trim(),
+      }),
+    });
+    return Array.isArray(data) ? data[0] : data;
+  }
+
+  // حذف تعليق (بالـ id)
+  async function deleteReview(reviewId) {
+    await req(`${REVIEWS_BASE}?id=eq.${encodeURIComponent(reviewId)}`, {
+      method:  "DELETE",
+      headers: hdrs(true),
+    });
+    return true;
+  }
+
+  // متوسط التقييم + العدد
+  async function getAvgRating(oppId) {
+    const reviews = await getReviews(oppId);
+    if (!reviews.length) return { avg: 0, count: 0 };
+    const sum = reviews.reduce((acc, r) => acc + r.rating, 0);
+    return {
+      avg:   Math.round((sum / reviews.length) * 10) / 10,
+      count: reviews.length,
+    };
+  }
+
+  // ══════════════════════════════════════════════════════════
+  // APPLICANTS — عداد المتقدمين
+  // ══════════════════════════════════════════════════════════
+  const APPLIED_KEY = "horizon_gate_applied_v1"; // localStorage
+
+  function getAppliedIds() { return _ls(APPLIED_KEY); }
+
+  function hasApplied(id) { return getAppliedIds().includes(id); }
+
+  // تسجيل تقدم + زيادة العداد في Supabase
+  async function registerApply(oppId) {
+    if (hasApplied(oppId)) return false; // سبق وتقدم
+
+    // زيادة العداد في Supabase بـ RPC أو PATCH
+    try {
+      // نقرأ القيمة الحالية أولاً
+      const current = await getById(oppId);
+      const newCount = (current?.applicants || 0) + 1;
+      await req(`${BASE}?id=eq.${encodeURIComponent(oppId)}`, {
+        method:  "PATCH",
+        headers: hdrs(true),
+        body:    JSON.stringify({ applicants: newCount }),
+      });
+      invalidateCache();
+    } catch (e) {
+      console.warn("registerApply Supabase error:", e.message);
+    }
+
+    // حفظ محلياً حتى لا يعيد التسجيل
+    const ids = getAppliedIds();
+    ids.push(oppId);
+    _lw(APPLIED_KEY, ids);
+    return true;
+  }
+
+  // جلب عدد المتقدمين لفرصة
+  async function getApplicantsCount(oppId) {
+    const item = await getById(oppId);
+    return item?.applicants || 0;
+  }
+
+  // ══════════════════════════════════════════════════════════
   return {
     getAll, getById, save,
     delete:   deleteById,
@@ -258,6 +348,10 @@ const HorizonDB = (() => {
     getReminderIds, toggleReminder, isReminded, getReminderCount,
     getTheme, setTheme,
     setAdminKey, clearAdminKey, isAdmin,
+    // Reviews
+    getReviews, addReview, deleteReview, getAvgRating,
+    // Applicants
+    getAppliedIds, hasApplied, registerApply, getApplicantsCount,
   };
 })();
 

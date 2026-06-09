@@ -212,6 +212,97 @@
   .not-found .nf-icon { font-size:4rem;display:block;margin-bottom:20px;opacity:0.3; }
   .not-found h2 { font-family:'Cairo',sans-serif;font-size:1.3rem;font-weight:800;margin-bottom:10px; }
   .not-found p  { font-size:0.85rem;color:var(--text-muted);margin-bottom:24px; }
+
+  /* ── Applicants Counter ── */
+  .applicants-bar {
+    display:flex;align-items:center;gap:10px;
+    background:rgba(59,130,246,0.06);border:1px solid rgba(59,130,246,0.18);
+    border-radius:12px;padding:14px 18px;
+  }
+  .applicants-icon { font-size:1.4rem; }
+  .applicants-num  {
+    font-family:'Cairo',sans-serif;font-size:1.6rem;font-weight:900;
+    color:#60a5fa;line-height:1;
+  }
+  .applicants-label { font-size:0.78rem;color:var(--text-muted);font-family:'Cairo',sans-serif; }
+
+  .btn-applied {
+    display:flex;align-items:center;justify-content:center;gap:8px;
+    background:linear-gradient(135deg,#3b82f6,#2563eb);
+    color:#fff;font-family:'Cairo',sans-serif;font-weight:800;font-size:0.95rem;
+    padding:13px 20px;border-radius:12px;border:none;cursor:pointer;
+    width:100%;transition:all 0.3s;margin-top:10px;
+    box-shadow:0 0 20px rgba(59,130,246,0.25);
+  }
+  .btn-applied:hover { transform:translateY(-2px);box-shadow:0 0 32px rgba(59,130,246,0.4); }
+  .btn-applied.done {
+    background:rgba(16,185,129,0.12);border:1px solid rgba(16,185,129,0.3);
+    color:#34d399;box-shadow:none;cursor:default;
+  }
+  .btn-applied.done:hover { transform:none; }
+
+  /* ── Reviews Section ── */
+  .reviews-summary {
+    display:flex;align-items:center;gap:16px;
+    padding-bottom:18px;border-bottom:1px solid var(--card-border);margin-bottom:18px;
+  }
+  .avg-num {
+    font-family:'Cairo',sans-serif;font-size:2.8rem;font-weight:900;
+    color:var(--gold);line-height:1;
+  }
+  .avg-stars { font-size:1.1rem;letter-spacing:2px;color:#fbbf24; }
+  .avg-count { font-size:0.78rem;color:var(--text-muted);font-family:'Cairo',sans-serif;margin-top:3px; }
+
+  .rating-bars { flex:1; }
+  .rbar-row {
+    display:flex;align-items:center;gap:8px;margin-bottom:5px;font-size:0.72rem;
+    color:var(--text-muted);font-family:'Cairo',sans-serif;
+  }
+  .rbar-label { width:14px;text-align:center; }
+  .rbar-track { flex:1;height:5px;background:rgba(255,255,255,0.06);border-radius:999px;overflow:hidden; }
+  .rbar-fill  { height:100%;background:#fbbf24;border-radius:999px;transition:width 0.5s ease; }
+  .rbar-cnt   { width:20px;text-align:left; }
+
+  /* Stars input */
+  .star-input-row {
+    display:flex;flex-direction:row-reverse;justify-content:flex-end;
+    gap:4px;margin-bottom:12px;
+  }
+  .star-inp {
+    font-size:1.6rem;cursor:pointer;color:rgba(255,255,255,0.15);
+    background:none;border:none;padding:2px;transition:color 0.15s;line-height:1;
+  }
+  .star-inp:hover,.star-inp:hover ~ .star-inp,.star-inp.sel { color:#fbbf24; }
+
+  /* Review card */
+  .review-card {
+    background:rgba(255,255,255,0.02);border:1px solid var(--card-border);
+    border-radius:12px;padding:14px 16px;margin-bottom:10px;
+    animation:cardIn 0.3s ease both;
+  }
+  .review-header { display:flex;align-items:center;justify-content:space-between;margin-bottom:8px; }
+  .review-stars  { color:#fbbf24;font-size:0.85rem;letter-spacing:1px; }
+  .review-date   { font-size:0.72rem;color:var(--text-subtle);font-family:'Cairo',sans-serif; }
+  .review-text   { font-size:0.83rem;color:var(--text-muted);line-height:1.7;font-family:'Tajawal',sans-serif; }
+  .review-del    {
+    background:none;border:none;color:rgba(239,68,68,0.4);cursor:pointer;
+    font-size:0.75rem;padding:2px 6px;border-radius:6px;transition:all 0.2s;
+    font-family:'Cairo',sans-serif;
+  }
+  .review-del:hover { background:rgba(239,68,68,0.1);color:#f87171; }
+
+  /* Notif banner */
+  .notif-banner {
+    display:flex;align-items:center;gap:10px;
+    background:rgba(168,85,247,0.08);border:1px solid rgba(168,85,247,0.22);
+    border-radius:12px;padding:12px 16px;font-size:0.8rem;
+    color:#c084fc;font-family:'Cairo',sans-serif;cursor:pointer;
+    transition:all 0.2s;
+  }
+  .notif-banner:hover { background:rgba(168,85,247,0.14); }
+  .notif-banner.granted {
+    background:rgba(16,185,129,0.08);border-color:rgba(16,185,129,0.22);color:#34d399;cursor:default;
+  }
 </style>
   </head>
   <body>
@@ -365,6 +456,45 @@ async function renderDetail() {
             </a>`).join('')}
         </div>
       </div>` : ''}
+
+      <!-- REVIEWS SECTION -->
+      <div class="detail-section" id="reviewsSection">
+        <div class="detail-section-title">⭐ التقييمات والتعليقات</div>
+
+        <!-- Summary -->
+        <div class="reviews-summary" id="reviewsSummary">
+          <div style="text-align:center;">
+            <div class="avg-num" id="avgNum">—</div>
+            <div class="avg-stars" id="avgStars">☆☆☆☆☆</div>
+            <div class="avg-count" id="avgCount">لا يوجد تقييم بعد</div>
+          </div>
+          <div class="rating-bars" id="ratingBars"></div>
+        </div>
+
+        <!-- Add Review Form -->
+        <div style="margin-bottom:20px;">
+          <div style="font-size:0.82rem;font-family:'Cairo',sans-serif;color:var(--text-muted);margin-bottom:10px;">أضف تقييمك:</div>
+          <div class="star-input-row" id="starInputRow">
+            <button class="star-inp" data-val="1">★</button>
+            <button class="star-inp" data-val="2">★</button>
+            <button class="star-inp" data-val="3">★</button>
+            <button class="star-inp" data-val="4">★</button>
+            <button class="star-inp" data-val="5">★</button>
+          </div>
+          <textarea id="reviewComment"
+            style="width:100%;background:rgba(255,255,255,0.03);border:1px solid var(--card-border);
+                   border-radius:10px;padding:11px 14px;color:var(--text-main);font-size:0.85rem;
+                   outline:none;resize:vertical;min-height:80px;font-family:'Tajawal',sans-serif;
+                   transition:all 0.2s;margin-bottom:10px;"
+            placeholder="شاركنا رأيك في هذه الفرصة..."></textarea>
+          <button class="btn btn-primary" style="width:100%;padding:11px;" onclick="submitReview()">
+            إرسال التقييم ✦
+          </button>
+        </div>
+
+        <!-- Reviews List -->
+        <div id="reviewsList"></div>
+      </div>
     </div>
 
     <!-- SIDEBAR -->
@@ -376,14 +506,31 @@ async function renderDetail() {
         <span class="cd-label">${expired ? 'انتهى موعد التقديم' : days===0 ? 'آخر يوم للتقديم!' : 'يوم متبقي للتقديم'}</span>
       </div>
 
-      <!-- Apply -->
+      <!-- Apply + Applied counter -->
       <div class="sidebar-card" style="padding:16px;">
         ${!expired
-          ? `<a href="${safe(item.url)}" target="_blank" rel="noopener noreferrer" class="btn-apply-big">
+          ? `<a href="${safe(item.url)}" target="_blank" rel="noopener noreferrer"
+               class="btn-apply-big" onclick="handleApply()">
                🚀 تقدم للفرصة الآن
              </a>`
           : `<div class="btn-apply-big disabled">🔒 انتهى موعد التقديم</div>`
         }
+        <button class="btn-applied ${HorizonDB.hasApplied(item.id)?'done':''}"
+                id="appliedBtn" onclick="handleApplied()">
+          ${HorizonDB.hasApplied(item.id) ? '✓ تقدمت لهذه الفرصة' : '✋ سجّل أنك تقدمت'}
+        </button>
+        <div class="applicants-bar" style="margin-top:10px;">
+          <span class="applicants-icon">👥</span>
+          <div>
+            <div class="applicants-num" id="applicantsNum">${item.applicants || 0}</div>
+            <div class="applicants-label">تقدموا لهذه الفرصة</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Notification Banner -->
+      <div id="notifBanner" class="notif-banner" onclick="requestNotifPermission()">
+        🔔 <span id="notifText">فعّل الإشعارات لتذكيرك قبل انتهاء الموعد</span>
       </div>
 
       <!-- Save + Remind -->
@@ -506,6 +653,175 @@ function handleCopy() {
   });
 }
 
+// ── Applied / Applicants ─────────────────────────────────────
+function handleApply() {
+  // فقط يفتح الرابط — التسجيل يتم بزر منفصل
+}
+
+async function handleApplied() {
+  const id  = getIdFromUrl();
+  const btn = document.getElementById('appliedBtn');
+  if (HorizonDB.hasApplied(id)) return; // سبق التسجيل
+
+  const registered = await HorizonDB.registerApply(id);
+  if (registered) {
+    btn.textContent = '✓ تقدمت لهذه الفرصة';
+    btn.classList.add('done');
+    // تحديث العداد في الواجهة
+    const newCount = parseInt(document.getElementById('applicantsNum').textContent || '0') + 1;
+    document.getElementById('applicantsNum').textContent = newCount;
+    showToast('✦ تم تسجيل تقدمك بنجاح', 'success');
+  }
+}
+
+// ── Browser Notifications ────────────────────────────────────
+function initNotifBanner() {
+  const banner = document.getElementById('notifBanner');
+  if (!banner) return;
+  if (!('Notification' in window)) { banner.style.display='none'; return; }
+  if (Notification.permission === 'granted') {
+    banner.className = 'notif-banner granted';
+    document.getElementById('notifText').textContent = '✓ الإشعارات مفعّلة';
+    banner.onclick = null;
+  } else if (Notification.permission === 'denied') {
+    banner.style.display = 'none';
+  }
+}
+
+async function requestNotifPermission() {
+  if (!('Notification' in window)) return;
+  const perm = await Notification.requestPermission();
+  if (perm === 'granted') {
+    document.getElementById('notifBanner').className = 'notif-banner granted';
+    document.getElementById('notifText').textContent = '✓ الإشعارات مفعّلة';
+    document.getElementById('notifBanner').onclick = null;
+    scheduleReminders();
+    showToast('🔔 سيصلك تنبيه قبل 3 أيام و يوم من الموعد', 'success');
+  } else {
+    showToast('⚠️ لم يتم السماح بالإشعارات', 'warning');
+  }
+}
+
+function scheduleReminders() {
+  // نتحقق من التذكيرات المحلية ونرسل إشعار للفرص القريبة
+  const ids = HorizonDB.getReminderIds();
+  if (!ids.length || !window._item) return;
+  const item = window._item;
+  if (!ids.includes(item.id)) return;
+
+  const days = HorizonApp.daysUntil(item.deadline);
+  if (days === 3 || days === 1 || days === 0) {
+    const label = days === 0 ? 'آخر يوم!' : `باقي ${days} ${days===1?'يوم':'أيام'}`;
+    new Notification(`⏰ ${item.title}`, {
+      body: `${label} على انتهاء موعد التقديم`,
+      icon: './icons/icon-192.png',
+      tag:  `reminder-${item.id}`,
+    });
+  }
+}
+
+// ── Reviews ───────────────────────────────────────────────────
+let _selectedRating = 0;
+
+function initStars() {
+  const stars = document.querySelectorAll('.star-inp');
+  if (!stars.length) return;
+  stars.forEach(star => {
+    star.addEventListener('click', () => {
+      _selectedRating = parseInt(star.dataset.val);
+      stars.forEach(s => {
+        s.classList.toggle('sel', parseInt(s.dataset.val) <= _selectedRating);
+      });
+    });
+  });
+}
+
+async function loadReviews() {
+  const id = getIdFromUrl();
+  try {
+    const reviews = await HorizonDB.getReviews(id);
+    renderReviewsList(reviews);
+    renderReviewsSummary(reviews);
+  } catch (e) {
+    console.warn('loadReviews:', e.message);
+  }
+}
+
+function renderReviewsSummary(reviews) {
+  if (!reviews.length) return;
+  const sum = reviews.reduce((a,r)=>a+r.rating,0);
+  const avg = Math.round((sum/reviews.length)*10)/10;
+  const count = reviews.length;
+
+  document.getElementById('avgNum').textContent  = avg.toFixed(1);
+  document.getElementById('avgStars').textContent = '★'.repeat(Math.round(avg)) + '☆'.repeat(5-Math.round(avg));
+  document.getElementById('avgCount').textContent = `${count} تقييم`;
+
+  // Rating bars
+  const bars = document.getElementById('ratingBars');
+  bars.innerHTML = [5,4,3,2,1].map(n => {
+    const cnt = reviews.filter(r=>r.rating===n).length;
+    const pct = count ? Math.round((cnt/count)*100) : 0;
+    return `<div class="rbar-row">
+      <span class="rbar-label">${n}</span>
+      <div class="rbar-track"><div class="rbar-fill" style="width:${pct}%"></div></div>
+      <span class="rbar-cnt">${cnt}</span>
+    </div>`;
+  }).join('');
+}
+
+function renderReviewsList(reviews) {
+  const list = document.getElementById('reviewsList');
+  if (!list) return;
+  if (!reviews.length) {
+    list.innerHTML = `<div style="text-align:center;padding:20px;font-size:0.82rem;color:var(--text-subtle);font-family:'Cairo',sans-serif;">
+      لا توجد تعليقات بعد — كن أول من يقيّم هذه الفرصة!
+    </div>`;
+    return;
+  }
+  list.innerHTML = reviews.map(r => `
+    <div class="review-card">
+      <div class="review-header">
+        <span class="review-stars">${'★'.repeat(r.rating)}${'☆'.repeat(5-r.rating)}</span>
+        <div style="display:flex;align-items:center;gap:8px;">
+          <span class="review-date">${HorizonApp.formatDate(r.created_at)}</span>
+          ${sessionStorage.getItem('admin_authenticated')==='true'
+            ? `<button class="review-del" onclick="deleteReview('${r.id}')">حذف</button>`
+            : ''}
+        </div>
+      </div>
+      <div class="review-text">${HorizonApp.sanitize(r.comment)}</div>
+    </div>`).join('');
+}
+
+async function submitReview() {
+  if (!_selectedRating) { showToast('⚠️ اختر عدد النجوم أولاً', 'warning'); return; }
+  const comment = document.getElementById('reviewComment')?.value.trim();
+  if (!comment) { showToast('⚠️ اكتب تعليقاً', 'warning'); return; }
+  if (comment.length < 5) { showToast('⚠️ التعليق قصير جداً', 'warning'); return; }
+
+  try {
+    await HorizonDB.addReview(getIdFromUrl(), _selectedRating, comment);
+    document.getElementById('reviewComment').value = '';
+    _selectedRating = 0;
+    document.querySelectorAll('.star-inp').forEach(s=>s.classList.remove('sel'));
+    await loadReviews();
+    showToast('✦ تم إرسال تقييمك، شكراً!', 'success');
+  } catch (e) {
+    showToast('✕ فشل الإرسال: ' + e.message, 'error');
+  }
+}
+
+async function deleteReview(reviewId) {
+  try {
+    await HorizonDB.deleteReview(reviewId);
+    await loadReviews();
+    showToast('✓ تم حذف التعليق', 'info');
+  } catch (e) {
+    showToast('✕ فشل الحذف', 'error');
+  }
+}
+
 function showToast(message, type='info') {
   const c = document.getElementById('toast-container');
   const t = document.createElement('div');
@@ -514,8 +830,16 @@ function showToast(message, type='info') {
 }
 
 // Boot
-document.addEventListener('DOMContentLoaded', renderDetail);
-if (document.readyState !== 'loading') renderDetail();
+async function boot() {
+  await renderDetail();
+  initStars();
+  await loadReviews();
+  initNotifBanner();
+  scheduleReminders();
+}
+
+document.addEventListener('DOMContentLoaded', boot);
+if (document.readyState !== 'loading') boot();
 </script>
   </body>
 </html>
