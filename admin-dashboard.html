@@ -296,8 +296,14 @@
 		<div class="admin-header">
 		  <div>
 			<div class="admin-title">⚙️ لوحة تحكم بوابة الأفق</div>
-			<div style="font-size:0.78rem;color:var(--text-muted);margin-top:4px;font-family:'Cairo',sans-serif;">
+			<div style="font-size:0.78rem;color:var(--text-muted);margin-top:6px;font-family:'Cairo',sans-serif;display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
 			  مركز العمليات الآمن — إدارة الفرص والبيانات
+			  <span id="dbModeBadge" style="
+				display:inline-flex;align-items:center;gap:5px;
+				font-size:0.68rem;font-weight:700;padding:3px 10px;border-radius:999px;
+				background:rgba(16,185,129,0.1);border:1px solid rgba(16,185,129,0.25);color:#34d399;">
+				💾 وضع محلي
+			  </span>
 			</div>
 		  </div>
 		  <div class="admin-actions">
@@ -492,6 +498,8 @@ function handleNumpadInput(n) {
 function verifyPasscode() {
   if (enteredCode === MASTER_PASSCODE) {
     sessionStorage.setItem('admin_authenticated','true');
+    // تفعيل صلاحيات الكتابة — service_role key
+    HorizonDB.setAdminKey();
     const ov = document.getElementById('adminLockOverlay');
     ov.classList.add('fade-out');
     document.getElementById('adminContent').style.display = 'block';
@@ -517,6 +525,7 @@ document.addEventListener('keydown', e => {
 });
 
 if (sessionStorage.getItem('admin_authenticated') === 'true') {
+  HorizonDB.setAdminKey(); // استعادة صلاحيات الكتابة
   document.getElementById('adminLockOverlay').remove();
   document.getElementById('adminContent').style.display = 'block';
   initAdminPage();
@@ -531,6 +540,18 @@ let _editingId   = null;
 let _charts      = {};
 
 async function initAdminPage() {
+  // اكتشاف وضع قاعدة البيانات
+  const badge = document.getElementById('dbModeBadge');
+  if (badge) {
+    const isCloud = typeof HorizonDB.setAdminKey === 'function' &&
+                    typeof HorizonDB.invalidateCache === 'function';
+    if (isCloud) {
+      badge.style.background = 'rgba(59,130,246,0.1)';
+      badge.style.border     = '1px solid rgba(59,130,246,0.25)';
+      badge.style.color      = '#60a5fa';
+      badge.textContent      = '☁️ وضع Cloudflare';
+    }
+  }
   HorizonApp.registerPage('admin', renderAdmin);
   await renderAdmin();
 }

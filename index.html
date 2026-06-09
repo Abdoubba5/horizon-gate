@@ -291,6 +291,11 @@
 		<a href="#about"    class="nav-pill">من نحن</a>
 		<a href="#features" class="nav-pill">المميزات</a>
 		<a href="#how"      class="nav-pill">كيف يعمل</a>
+		<a href="saved.html" class="nav-pill" style="position:relative;">
+		  🔖
+		  <span class="reminder-badge"></span>
+		</a>
+		<button class="theme-toggle" id="themeToggle" title="تبديل الوضع">🌙</button>
 		<a href="opportunities.html" class="nav-pill cta">📋 استعرض الفرص</a>
 	  </div>
 	</nav>
@@ -523,6 +528,21 @@
 	<script src="js/horizon-db.js"></script>
 	<script src="js/app-advanced.js"></script>
 <script>
+// Theme
+const _ti = HorizonApp.initTheme();
+const _tb = document.getElementById('themeToggle');
+if(_tb){ _tb.textContent = _ti==='dark'?'☀️':'🌙';
+  _tb.onclick = () => { const t=HorizonApp.toggleTheme(); _tb.textContent=t==='dark'?'☀️':'🌙'; }; }
+HorizonApp.updateReminderBadge();
+
+// PWA
+if('serviceWorker' in navigator) navigator.serviceWorker.register('./sw.js').catch(()=>{});
+
+// Realtime — تحديث الإحصائيات فوراً
+HorizonDB.subscribeRealtime(() => {
+  loadHeroStats();
+});
+
 // Load live stats for hero
 async function loadHeroStats() {
   try {

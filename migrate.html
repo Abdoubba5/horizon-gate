@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+  <head>
+	<meta charset="UTF-8"/>
+	<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+	<title>نقل البيانات إلى Supabase | بوابة الأفق</title>
+	<meta name="robots" content="noindex"/>
+	<link rel="preconnect" href="https://fonts.googleapis.com"/>
+	<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+	<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;500;600;700;900&family=Tajawal:wght@300;400;500;700&display=swap" rel="stylesheet"/>
+	<link rel="stylesheet" href="css/style.css"/>
+<style>
+  .mig-page{max-width:660px;margin:0 auto;padding:56px 24px 80px;position:relative;z-index:10;}
+  .mig-eyebrow{display:inline-flex;align-items:center;gap:7px;background:rgba(62,207,142,0.07);border:1px solid rgba(62,207,142,0.2);border-radius:999px;padding:5px 16px;font-size:0.76rem;color:#3ecf8e;font-family:'Cairo',sans-serif;font-weight:600;margin-bottom:16px;}
+  .mig-title{font-family:'Cairo',sans-serif;font-size:1.8rem;font-weight:900;color:var(--text-main);margin-bottom:8px;}
+  .mig-title span{background:linear-gradient(135deg,#3ecf8e,#22c55e);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+  .mig-sub{font-size:0.88rem;color:var(--text-muted);line-height:1.8;margin-bottom:28px;}
+
+  .info-card{background:rgba(62,207,142,0.04);border:1px solid rgba(62,207,142,0.2);border-radius:14px;padding:16px 20px;margin-bottom:24px;font-size:0.82rem;color:var(--text-muted);font-family:'Cairo',sans-serif;line-height:1.8;}
+  .info-card strong{color:#3ecf8e;}
+
+  .mig-btn-row{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:24px;}
+
+  .progress-wrap{height:4px;background:rgba(255,255,255,0.05);border-radius:999px;overflow:hidden;margin-bottom:24px;display:none;}
+  .progress-fill{height:100%;background:linear-gradient(90deg,#3ecf8e,#22c55e);border-radius:999px;width:0%;transition:width 0.5s ease;}
+
+  .step{background:rgba(255,255,255,0.01);border:1px solid var(--card-border);border-radius:14px;padding:18px 20px;margin-bottom:12px;transition:all 0.3s;}
+  .step.running{border-color:rgba(251,191,36,0.35);background:rgba(251,191,36,0.03);}
+  .step.done{border-color:rgba(62,207,142,0.35);background:rgba(62,207,142,0.03);}
+  .step.error{border-color:rgba(239,68,68,0.35);background:rgba(239,68,68,0.03);}
+  .step-head{display:flex;align-items:center;gap:12px;}
+  .step-icon{width:34px;height:34px;border-radius:9px;flex-shrink:0;background:rgba(255,255,255,0.04);border:1px solid var(--card-border);display:flex;align-items:center;justify-content:center;font-family:'Cairo',sans-serif;font-size:0.85rem;font-weight:800;color:var(--text-muted);transition:all 0.3s;}
+  .step.running .step-icon{border-color:rgba(251,191,36,0.4);color:#fbbf24;background:rgba(251,191,36,0.1);}
+  .step.done    .step-icon{border-color:rgba(62,207,142,0.4);color:#3ecf8e;background:rgba(62,207,142,0.1);}
+  .step.error   .step-icon{border-color:rgba(239,68,68,0.4);color:#f87171;background:rgba(239,68,68,0.1);}
+  .step-title{font-family:'Cairo',sans-serif;font-size:0.88rem;font-weight:700;color:var(--text-main);}
+  .step-msg{font-size:0.78rem;color:var(--text-muted);margin-top:8px;font-family:'Cairo',sans-serif;line-height:1.7;display:none;}
+  .step.running .step-msg,.step.done .step-msg,.step.error .step-msg{display:block;}
+  .step.done  .step-msg{color:#3ecf8e;}
+  .step.error .step-msg{color:#f87171;}
+  .spin{display:inline-block;width:13px;height:13px;border:2px solid rgba(251,191,36,0.3);border-top-color:#fbbf24;border-radius:50%;animation:sp 0.7s linear infinite;vertical-align:middle;}
+  @keyframes sp{to{transform:rotate(360deg)}}
+
+  .preview-box{background:rgba(255,255,255,0.02);border:1px solid var(--card-border);border-radius:12px;padding:14px;margin-bottom:20px;max-height:200px;overflow-y:auto;display:none;}
+  .preview-row{display:flex;gap:10px;align-items:center;padding:6px 0;border-bottom:1px solid rgba(255,255,255,0.03);font-size:0.78rem;font-family:'Cairo',sans-serif;}
+  .preview-row:last-child{border-bottom:none;}
+  .p-num{color:var(--text-subtle);min-width:22px;}
+  .p-title{color:var(--text-main);font-weight:600;flex:1;}
+  .p-country{color:var(--text-muted);}
+</style>
+  </head>
+  <body>
+	<div class="bg-mesh"></div>
+	<div id="toast-container"></div>
+
+	<div class="mig-page">
+
+	  <div class="mig-eyebrow">🗄️ نقل البيانات</div>
+	  <h1 class="mig-title">من localStorage<br/>إلى <span>Supabase</span></h1>
+	  <p class="mig-sub">
+		انقل الفرص المحفوظة على هذا الجهاز إلى Supabase —
+		بعد النقل يراها جميع الزوار فوراً.
+	  </p>
+
+	  <div class="info-card">
+		<strong>المشروع:</strong> xhzjpccmaevzyvpcsbwa.supabase.co<br/>
+		<strong>الوضع:</strong> الاتصال جاهز — لا تحتاج إدخال أي مفاتيح<br/>
+		<strong>ملاحظة:</strong> شغّل <code>schema.sql</code> في SQL Editor قبل النقل
+	  </div>
+
+	  <div class="mig-btn-row">
+		<button class="btn btn-primary"   id="startBtn" onclick="startMigration()">🚀 ابدأ النقل</button>
+		<button class="btn btn-secondary" onclick="previewData()">👁️ معاينة البيانات</button>
+		<button class="btn btn-info"      onclick="testConn()">🔌 اختبر الاتصال</button>
+	  </div>
+
+	  <div class="preview-box" id="previewBox"></div>
+
+	  <div class="progress-wrap" id="pgWrap">
+		<div class="progress-fill" id="pgFill"></div>
+	  </div>
+
+	  <div id="steps">
+		<div class="step" id="s1">
+		  <div class="step-head"><div class="step-icon" id="si1">١</div><div class="step-title">قراءة البيانات المحلية من localStorage</div></div>
+		  <div class="step-msg" id="sm1"></div>
+		</div>
+		<div class="step" id="s2">
+		  <div class="step-head"><div class="step-icon" id="si2">٢</div><div class="step-title">اختبار الاتصال بـ Supabase</div></div>
+		  <div class="step-msg" id="sm2"></div>
+		</div>
+		<div class="step" id="s3">
+		  <div class="step-head"><div class="step-icon" id="si3">٣</div><div class="step-title">رفع الفرص إلى قاعدة البيانات</div></div>
+		  <div class="step-msg" id="sm3"></div>
+		</div>
+		<div class="step" id="s4">
+		  <div class="step-head"><div class="step-icon" id="si4">٤</div><div class="step-title">التحقق من النقل</div></div>
+		  <div class="step-msg" id="sm4"></div>
+		</div>
+	  </div>
+
+	</div>
+
+<script>
+// ── Supabase config ─────────────────────────────────────────
+const SB_URL      = "https://xhzjpccmaevzyvpcsbwa.supabase.co";
+const SB_ANON     = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhoempwY2NtYWV2enl2cGNzYndhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA3Mjk3OTYsImV4cCI6MjA5NjMwNTc5Nn0.mB1Wgzn9A3SukK3fQdEP3CjmoDcpvs_XIbXaXkbUp5s";
+const SB_SERVICE  = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhoempwY2NtYWV2enl2cGNzYndhIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc4MDcyOTc5NiwiZXhwIjoyMDk2MzA1Nzk2fQ.9Hsj6EHqWJuUz4ibdLOSEs32FautbMCy5DTAIl8e5-A";
+const TABLE       = "opportunities";
+const BASE        = `${SB_URL}/rest/v1/${TABLE}`;
+
+// ── Local storage reader ────────────────────────────────────
+function readLocal() {
+  try { return JSON.parse(localStorage.getItem("horizon_gate_v3_data")||"[]"); }
+  catch { return []; }
+}
+
+// ── Headers ─────────────────────────────────────────────────
+function hdrs(write=false) {
+  const k = write ? SB_SERVICE : SB_ANON;
+  return {
+    "Content-Type":  "application/json",
+    "apikey":        k,
+    "Authorization": `Bearer ${k}`,
+    "Prefer":        write ? "resolution=ignore-duplicates,return=representation" : "",
+  };
+}
+
+// ── Row mapper ───────────────────────────────────────────────
+function toRow(item) {
+  return {
+    id:         item.id,
+    title:      item.title       || "",
+    url:        item.url         || "",
+    type:       item.type        || "",
+    funding:    item.funding     || "",
+    country:    item.country     || "",
+    deadline:   item.deadline    || "",
+    desc:       item.desc        || "",
+    image:      item.image       || "",
+    tags:       Array.isArray(item.tags) ? item.tags : [],
+    created_at: item.createdAt   || new Date().toISOString(),
+  };
+}
+
+// ── UI helpers ───────────────────────────────────────────────
+function setStep(n, state, msg='') {
+  document.getElementById(`s${n}`).className = `step ${state}`;
+  const ic = document.getElementById(`si${n}`);
+  if      (state==='running') ic.innerHTML  = '<span class="spin"></span>';
+  else if (state==='done')    ic.textContent = '✓';
+  else if (state==='error')   ic.textContent = '✕';
+  if (msg) document.getElementById(`sm${n}`).textContent = msg;
+}
+
+function pg(pct) {
+  document.getElementById('pgWrap').style.display='block';
+  document.getElementById('pgFill').style.width=pct+'%';
+}
+
+function toast(msg, type='info') {
+  const c=document.getElementById('toast-container');
+  const t=document.createElement('div');
+  t.className=`toast ${type}`;t.textContent=msg;c.appendChild(t);
+  setTimeout(()=>{t.style.animation='toastOut 0.3s ease forwards';setTimeout(()=>t.remove(),300);},3800);
+}
+
+const wait = ms => new Promise(r=>setTimeout(r,ms));
+
+// ── Preview ──────────────────────────────────────────────────
+function previewData() {
+  const data = readLocal();
+  const box  = document.getElementById('previewBox');
+  if (!data.length) { toast('لا توجد بيانات محلية','warning'); return; }
+  box.style.display='block';
+  box.innerHTML=`<div style="font-size:0.76rem;color:#3ecf8e;font-family:'Cairo',sans-serif;margin-bottom:10px;font-weight:700;">${data.length} فرصة في localStorage:</div>`
+    + data.map((i,n)=>`<div class="preview-row"><span class="p-num">${n+1}</span><span class="p-title">${i.title||'—'}</span><span class="p-country">🌍 ${i.country||'—'}</span></div>`).join('');
+}
+
+// ── Test connection ──────────────────────────────────────────
+async function testConn() {
+  toast('🔌 جارٍ الاختبار...','info');
+  try {
+    const r = await fetch(`${BASE}?select=id&limit=1`,{headers:hdrs()});
+    if (!r.ok) throw new Error(`HTTP ${r.status}`);
+    toast('✅ الاتصال بـ Supabase ناجح','success');
+  } catch(e) { toast('✕ '+e.message,'error'); }
+}
+
+// ── Migration ────────────────────────────────────────────────
+async function startMigration() {
+  const btn = document.getElementById('startBtn');
+  btn.disabled=true; btn.textContent='⏳ جارٍ النقل...';
+  pg(0);
+
+  // Step 1 — Read
+  setStep(1,'running');
+  await wait(300);
+  const local = readLocal();
+  if (!local.length) {
+    setStep(1,'error','لا توجد بيانات في localStorage على هذا المتصفح');
+    btn.disabled=false; btn.textContent='🚀 ابدأ النقل';
+    toast('لا توجد بيانات محلية','warning'); return;
+  }
+  setStep(1,'done',`✓ تم قراءة ${local.length} فرصة`);
+  pg(25);
+
+  // Step 2 — Test
+  setStep(2,'running');
+  await wait(400);
+  try {
+    const r = await fetch(`${BASE}?select=id&limit=1`,{headers:hdrs()});
+    if (!r.ok) throw new Error(`HTTP ${r.status}`);
+    setStep(2,'done','✓ الاتصال بـ Supabase ناجح');
+    pg(50);
+  } catch(e) {
+    setStep(2,'error','✕ فشل الاتصال: '+e.message+'\nتأكد من تشغيل schema.sql أولاً');
+    btn.disabled=false; btn.textContent='🚀 ابدأ النقل';
+    toast('✕ فشل الاتصال','error'); return;
+  }
+
+  // Step 3 — Upload
+  setStep(3,'running');
+  await wait(400);
+  try {
+    const rows = local.map(toRow);
+    const r = await fetch(BASE, {
+      method:'POST', headers:hdrs(true), body:JSON.stringify(rows),
+    });
+    if (r.status===401) throw new Error('خطأ في صلاحيات الكتابة (401)');
+    if (!r.ok) { const t=await r.text(); throw new Error(t); }
+    const data = await r.json().catch(()=>[]);
+    const added = Array.isArray(data) ? data.length : local.length;
+    setStep(3,'done',`✓ تم رفع ${added} فرصة جديدة إلى Supabase`);
+    pg(75);
+  } catch(e) {
+    setStep(3,'error','✕ فشل الرفع: '+e.message);
+    btn.disabled=false; btn.textContent='🚀 ابدأ النقل';
+    toast('✕ فشل رفع البيانات','error'); return;
+  }
+
+  // Step 4 — Verify
+  setStep(4,'running');
+  await wait(600);
+  try {
+    const r = await fetch(`${BASE}?select=id`,{headers:{...hdrs(),"Prefer":"count=exact"}});
+    const range = r.headers.get('Content-Range')||'0/0';
+    const total = parseInt(range.split('/')[1]||'0',10);
+    setStep(4,'done',
+      `✓ التحقق ناجح — ${total} فرصة متاحة في Supabase\n` +
+      `جميع الزوار يرون الفرص الآن ✅\n` +
+      `يمكنك الآن حذف migrate.html من الموقع`
+    );
+    pg(100);
+    toast(`✦ تم نقل ${local.length} فرصة بنجاح!`,'success');
+    btn.textContent='✓ اكتمل النقل';
+  } catch(e) {
+    setStep(4,'error','⚠️ تعذّر التحقق: '+e.message);
+    btn.disabled=false; btn.textContent='🚀 ابدأ النقل';
+  }
+}
+</script>
+  </body>
+</html>
+

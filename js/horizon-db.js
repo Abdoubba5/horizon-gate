@@ -1,176 +1,263 @@
 /**
- * HorizonDB — Local Storage Engine v4
- * بوابة الأفق | محرك قاعدة البيانات المحلية
+ * HorizonDB — Supabase Engine v5
+ * بوابة الأفق | قاعدة البيانات المشتركة
  * Abdelilah Sidiali © 2026
  */
 
 const HorizonDB = (() => {
-  const STORAGE_KEY   = "horizon_gate_v3_data";
-  const SAVED_KEY     = "horizon_gate_saved_v1";
-  const REMINDED_KEY  = "horizon_gate_reminders_v1";
-  const THEME_KEY     = "horizon_gate_theme_v1";
 
-  // ─── Internal ────────────────────────────────────────────────
-  function _readRaw() {
-    try {
-      const raw = localStorage.getItem(STORAGE_KEY);
-      if (!raw) return [];
-      const p = JSON.parse(raw);
-      return Array.isArray(p) ? p : [];
-    } catch { return []; }
+  // ══════════════════════════════════════════════════════════
+  // CONFIG
+  // ══════════════════════════════════════════════════════════
+  const SUPABASE_URL      = "https://xhzjpccmaevzyvpcsbwa.supabase.co";
+  const SUPABASE_ANON     = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhoempwY2NtYWV2enl2cGNzYndhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA3Mjk3OTYsImV4cCI6MjA5NjMwNTc5Nn0.mB1Wgzn9A3SukK3fQdEP3CjmoDcpvs_XIbXaXkbUp5s";
+  const SUPABASE_SERVICE  = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhoempwY2NtYWV2enl2cGNzYndhIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc4MDcyOTc5NiwiZXhwIjoyMDk2MzA1Nzk2fQ.9Hsj6EHqWJuUz4ibdLOSEs32FautbMCy5DTAIl8e5-A";
+  const TABLE             = "opportunities";
+  const BASE              = `${SUPABASE_URL}/rest/v1/${TABLE}`;
+
+  // ── مفتاح الكتابة — يُفعَّل من الأدمن بعد تسجيل الدخول
+  let _writeKey = SUPABASE_ANON; // القيمة الافتراضية للقراءة فقط
+
+  function setAdminKey()  { _writeKey = SUPABASE_SERVICE; }
+  function clearAdminKey(){ _writeKey = SUPABASE_ANON; }
+  function isAdmin()      { return _writeKey === SUPABASE_SERVICE; }
+
+  // ══════════════════════════════════════════════════════════
+  // HTTP HELPERS
+  // ══════════════════════════════════════════════════════════
+  function hdrs(write = false) {
+    const key = write ? _writeKey : SUPABASE_ANON;
+    return {
+      "Content-Type":  "application/json",
+      "apikey":        key,
+      "Authorization": `Bearer ${key}`,
+      "Prefer":        write ? "return=representation" : "",
+    };
   }
 
-  function _writeRaw(data) {
-    if (!Array.isArray(data)) throw new TypeError("HorizonDB: data must be an array");
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+  async function req(url, opts = {}) {
+    const res  = await fetch(url, opts);
+    const text = await res.text();
+    if (!res.ok) {
+      let msg = text;
+      try { msg = JSON.parse(text).message || text; } catch {}
+      throw new Error(msg);
+    }
+    return text ? JSON.parse(text) : null;
   }
 
-  function _generateId() {
-    return `hzn_${Date.now()}_${Math.random().toString(36).slice(2, 9)}`;
+  // ══════════════════════════════════════════════════════════
+  // ROW MAPPING
+  // ══════════════════════════════════════════════════════════
+  function toItem(row) {
+    if (!row) return null;
+    return {
+      id:        row.id,
+      title:     row.title,
+      url:       row.url,
+      type:      row.type,
+      funding:   row.funding,
+      country:   row.country,
+      deadline:  row.deadline,
+      desc:      row.desc,
+      image:     row.image      || "",
+      tags:      Array.isArray(row.tags) ? row.tags : [],
+      createdAt: row.created_at || row.createdAt,
+    };
   }
 
-  function _validateItem(item) {
-    if (!item || typeof item !== "object") return false;
-    const req = ["title","url","type","funding","country","deadline","desc"];
-    return req.every(f => typeof item[f] === "string" && item[f].trim() !== "");
+  function toRow(item) {
+    const row = {
+      title:    (item.title    || "").trim(),
+      url:      (item.url      || "").trim(),
+      type:     (item.type     || "").trim(),
+      funding:  (item.funding  || "").trim(),
+      country:  (item.country  || "").trim(),
+      deadline:  item.deadline || "",
+      desc:     (item.desc     || "").trim(),
+      image:     item.image    || "",
+      tags:      Array.isArray(item.tags) ? item.tags : [],
+    };
+    if (item.id)        row.id         = item.id;
+    if (item.createdAt) row.created_at = item.createdAt;
+    return row;
   }
 
-  // ─── Opportunities CRUD ───────────────────────────────────────
+  // ══════════════════════════════════════════════════════════
+  // CACHE (30 ثانية)
+  // ══════════════════════════════════════════════════════════
+  let _cache   = null;
+  let _cacheTs = 0;
+  const TTL    = 30000;
+
+  function invalidateCache() { _cache = null; _cacheTs = 0; }
+
+  // ══════════════════════════════════════════════════════════
+  // CRUD
+  // ══════════════════════════════════════════════════════════
+
   async function getAll() {
-    return new Promise((resolve, reject) => {
-      try { resolve(_readRaw()); }
-      catch (err) { reject(err); }
-    });
+    if (_cache && (Date.now() - _cacheTs) < TTL) return _cache;
+    const data  = await req(`${BASE}?select=*&order=created_at.desc`, { headers: hdrs() });
+    const items = (data || []).map(toItem);
+    _cache   = items;
+    _cacheTs = Date.now();
+    return items;
   }
 
   async function getById(id) {
-    const data = await getAll();
-    return data.find(r => r.id === id) || null;
+    if (_cache) {
+      const hit = _cache.find(i => i.id === id);
+      if (hit) return hit;
+    }
+    const data = await req(
+      `${BASE}?id=eq.${encodeURIComponent(id)}&select=*`,
+      { headers: hdrs() }
+    );
+    return data?.[0] ? toItem(data[0]) : null;
   }
 
   async function save(item) {
-    return new Promise((resolve, reject) => {
-      try {
-        if (!_validateItem(item)) {
-          reject(new Error("HorizonDB.save: validation failed")); return;
-        }
-        const data = _readRaw();
-        const now  = new Date().toISOString();
-        if (!item.id) {
-          const newItem = { ...item, id: _generateId(), createdAt: now };
-          data.unshift(newItem);
-          _writeRaw(data);
-          resolve(newItem);
-        } else {
-          const idx = data.findIndex(r => r.id === item.id);
-          if (idx === -1) {
-            const newItem = { ...item, createdAt: item.createdAt || now };
-            data.unshift(newItem);
-            _writeRaw(data);
-            resolve(newItem);
-          } else {
-            data[idx] = { ...data[idx], ...item };
-            _writeRaw(data);
-            resolve(data[idx]);
-          }
-        }
-      } catch (err) {
-        if (err.name === "QuotaExceededError")
-          reject(new Error("تجاوز حد التخزين المحلي."));
-        else reject(err);
-      }
-    });
+    invalidateCache();
+    const row = toRow(item);
+
+    if (!item.id) {
+      // INSERT جديد
+      const data = await req(BASE, {
+        method:  "POST",
+        headers: hdrs(true),
+        body:    JSON.stringify(row),
+      });
+      return toItem(Array.isArray(data) ? data[0] : data);
+    } else {
+      // UPDATE موجود
+      const data = await req(
+        `${BASE}?id=eq.${encodeURIComponent(item.id)}`,
+        { method: "PATCH", headers: hdrs(true), body: JSON.stringify(row) }
+      );
+      return toItem(Array.isArray(data) ? data[0] : data) || item;
+    }
   }
 
   async function deleteById(id) {
-    return new Promise((resolve, reject) => {
-      try {
-        if (!id) { reject(new Error("invalid id")); return; }
-        const data     = _readRaw();
-        const filtered = data.filter(r => r.id !== id);
-        _writeRaw(filtered);
-        resolve(filtered.length !== data.length);
-      } catch (err) { reject(err); }
-    });
+    invalidateCache();
+    await req(
+      `${BASE}?id=eq.${encodeURIComponent(id)}`,
+      { method: "DELETE", headers: hdrs(true) }
+    );
+    return true;
   }
 
   async function importBulk(items) {
-    return new Promise((resolve, reject) => {
-      try {
-        if (!Array.isArray(items)) { reject(new Error("must be array")); return; }
-        const data = _readRaw();
-        const ids  = new Set(data.map(r => r.id));
-        let added  = 0;
-        const now  = new Date().toISOString();
-        for (const item of items) {
-          if (!item || typeof item !== "object") continue;
-          if (!item.id) item.id = _generateId();
-          if (ids.has(item.id)) continue;
-          if (!item.createdAt) item.createdAt = now;
-          data.unshift(item);
-          ids.add(item.id);
-          added++;
-        }
-        _writeRaw(data);
-        resolve(added);
-      } catch (err) { reject(err); }
+    invalidateCache();
+    const rows = items.filter(i => i && typeof i === "object").map(toRow);
+    const data = await req(BASE, {
+      method:  "POST",
+      headers: { ...hdrs(true), "Prefer": "resolution=ignore-duplicates,return=representation" },
+      body:    JSON.stringify(rows),
     });
+    return Array.isArray(data) ? data.length : 0;
   }
 
-  async function count()    { return (await getAll()).length; }
+  async function count() {
+    const res   = await fetch(`${BASE}?select=id`, {
+      headers: { ...hdrs(), "Prefer": "count=exact" }
+    });
+    const range = res.headers.get("Content-Range") || "0/0";
+    return parseInt(range.split("/")[1] || "0", 10);
+  }
+
   async function clearAll() {
-    return new Promise((resolve, reject) => {
-      try { localStorage.removeItem(STORAGE_KEY); resolve(); }
-      catch(err) { reject(err); }
+    invalidateCache();
+    await req(`${BASE}?id=neq.NONE__ALL`, {
+      method:  "DELETE",
+      headers: hdrs(true),
     });
   }
 
-  // ─── Saved / Bookmarks ───────────────────────────────────────
-  function getSavedIds() {
-    try { return JSON.parse(localStorage.getItem(SAVED_KEY) || "[]"); }
-    catch { return []; }
+  // ══════════════════════════════════════════════════════════
+  // REALTIME — تحديث تلقائي فوري عبر WebSocket
+  // ══════════════════════════════════════════════════════════
+  let _ws = null;
+
+  function subscribeRealtime(callback) {
+    if (_ws) return;
+    const wsBase = SUPABASE_URL.replace("https://","wss://");
+    const url    = `${wsBase}/realtime/v1/websocket?apikey=${SUPABASE_ANON}&vsn=1.0.0`;
+
+    function connect() {
+      _ws = new WebSocket(url);
+
+      _ws.onopen = () => {
+        _ws.send(JSON.stringify({
+          topic:   "realtime:public:opportunities",
+          event:   "phx_join",
+          payload: { config: { broadcast: { self: true } } },
+          ref:     "1",
+        }));
+      };
+
+      _ws.onmessage = (e) => {
+        try {
+          const msg = JSON.parse(e.data);
+          if (["INSERT","UPDATE","DELETE"].includes(msg?.payload?.type)) {
+            invalidateCache();
+            if (typeof callback === "function") callback(msg.payload);
+          }
+        } catch {}
+      };
+
+      _ws.onclose = () => { _ws = null; setTimeout(connect, 3000); };
+      _ws.onerror = () => { _ws?.close(); };
+    }
+
+    connect();
   }
+
+  // ══════════════════════════════════════════════════════════
+  // LOCAL — محفوظات / تذكيرات / ثيم
+  // ══════════════════════════════════════════════════════════
+  const SAVED_KEY    = "horizon_gate_saved_v1";
+  const REMINDED_KEY = "horizon_gate_reminders_v1";
+  const THEME_KEY    = "horizon_gate_theme_v1";
+
+  const _ls = (k, d="[]") => { try { return JSON.parse(localStorage.getItem(k)||d); } catch { return JSON.parse(d); } };
+  const _lw = (k, v) => localStorage.setItem(k, JSON.stringify(v));
+
+  function getSavedIds()   { return _ls(SAVED_KEY); }
   function toggleSaved(id) {
-    const ids = getSavedIds();
-    const idx = ids.indexOf(id);
-    if (idx === -1) ids.push(id); else ids.splice(idx, 1);
-    localStorage.setItem(SAVED_KEY, JSON.stringify(ids));
-    return idx === -1; // true = now saved
+    const ids = getSavedIds(), idx = ids.indexOf(id);
+    idx === -1 ? ids.push(id) : ids.splice(idx,1);
+    _lw(SAVED_KEY, ids); return idx === -1;
   }
-  function isSaved(id) { return getSavedIds().includes(id); }
+  function isSaved(id)     { return getSavedIds().includes(id); }
   async function getSavedItems() {
-    const ids  = getSavedIds();
-    const all  = await getAll();
+    const ids = getSavedIds(), all = await getAll();
     return all.filter(i => ids.includes(i.id));
   }
 
-  // ─── Reminders ───────────────────────────────────────────────
-  function getReminderIds() {
-    try { return JSON.parse(localStorage.getItem(REMINDED_KEY) || "[]"); }
-    catch { return []; }
-  }
+  function getReminderIds()   { return _ls(REMINDED_KEY); }
   function toggleReminder(id) {
-    const ids = getReminderIds();
-    const idx = ids.indexOf(id);
-    if (idx === -1) ids.push(id); else ids.splice(idx, 1);
-    localStorage.setItem(REMINDED_KEY, JSON.stringify(ids));
-    return idx === -1;
+    const ids = getReminderIds(), idx = ids.indexOf(id);
+    idx === -1 ? ids.push(id) : ids.splice(idx,1);
+    _lw(REMINDED_KEY, ids); return idx === -1;
   }
   function isReminded(id)     { return getReminderIds().includes(id); }
   function getReminderCount() { return getReminderIds().length; }
 
-  // ─── Theme ───────────────────────────────────────────────────
-  function getTheme()      { return localStorage.getItem(THEME_KEY) || "dark"; }
-  function setTheme(theme) { localStorage.setItem(THEME_KEY, theme); }
+  function getTheme()         { return localStorage.getItem(THEME_KEY) || "dark"; }
+  function setTheme(t)        { localStorage.setItem(THEME_KEY, t); }
 
+  // ══════════════════════════════════════════════════════════
   return {
-    getAll, getById, save, delete: deleteById, importBulk, count, clearAll,
-    // saved
+    getAll, getById, save,
+    delete:   deleteById,
+    importBulk, count, clearAll,
+    subscribeRealtime, invalidateCache,
     getSavedIds, toggleSaved, isSaved, getSavedItems,
-    // reminders
     getReminderIds, toggleReminder, isReminded, getReminderCount,
-    // theme
-    getTheme, setTheme
+    getTheme, setTheme,
+    setAdminKey, clearAdminKey, isAdmin,
   };
 })();
 

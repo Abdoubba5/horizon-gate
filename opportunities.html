@@ -833,6 +833,11 @@ if ('serviceWorker' in navigator) {
   navigator.serviceWorker.register('./sw.js').catch(() => {});
 }
 
+// Realtime — تحديث فوري عند إضافة فرص جديدة
+HorizonDB.subscribeRealtime(() => {
+  renderAll();
+});
+
 document.addEventListener('DOMContentLoaded', init);
 if (document.readyState !== 'loading') init();
 </script>
