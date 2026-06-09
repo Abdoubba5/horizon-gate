@@ -59,7 +59,7 @@ const HorizonDB = (() => {
       funding:   row.funding,
       country:   row.country,
       deadline:  row.deadline,
-      desc:      row.desc,
+      desc:      row.description || row.desc || "",
       image:     row.image      || "",
       tags:      Array.isArray(row.tags) ? row.tags : [],
       createdAt: row.created_at || row.createdAt,
@@ -74,7 +74,7 @@ const HorizonDB = (() => {
       funding:  (item.funding  || "").trim(),
       country:  (item.country  || "").trim(),
       deadline:  item.deadline || "",
-      desc:     (item.desc     || "").trim(),
+      description: (item.desc || "").trim(),
       image:     item.image    || "",
       tags:      Array.isArray(item.tags) ? item.tags : [],
     };
